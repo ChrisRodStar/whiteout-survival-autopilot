@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 import (
 	"context"
@@ -31,20 +31,20 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// ─── Инициализация OpenTelemetry ──────────────────────────────────────────
+	// ─── Initialize OpenTelemetry ──────────────────────────────────────────
 	shutdown := trace.Init(ctx, "whiteout-bot")
 	defer shutdown()
 
 	// ─── Redis ───────────────────────────────────────────────────────────────
 	rdb := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
 	if err := rdb.Ping(ctx).Err(); err != nil {
-		log.Fatalf("❌ Redis недоступен: %v", err)
+		log.Fatalf("❌ Redis unavailable: %v", err)
 	}
 
-	// ─── Логгер ──────────────────────────────────────────────────────────────
+	// ─── Logger ──────────────────────────────────────────────────────────────
 	appLogger, err := logger.InitializeLogger("app")
 	if err != nil {
-		log.Fatalf("❌ Не удалось инициализировать логгер: %v", err)
+		log.Fatalf("❌ Failed to initialize logger: %v", err)
 	}
 
 	// ─── Gift listener ───────────────────────────
@@ -52,47 +52,47 @@ func main() {
 		UserID:      "1634091876319117312",
 		DevicesYAML: "db/devices.yaml",
 		CodesYAML:   "db/giftCodes.yaml",
-		// PythonDir: "",          // скрипт из пакета
+		// PythonDir: "",          // script from package
 		// PollEvery: 0,           // 0 ⇒ 5 min
 		// HistoryDepth: 0,        // 0 ⇒ 10
 		Logger: appLogger,
 	})
 
-	// ── Метрики ───────────────────────────────────────────────────────────────
+	// ── Metrics ───────────────────────────────────────────────────────────────
 	metrics.StartExporter()
 
-	// ─── Хранилище состояния ─────────────────────────────────────────────────
+	// ─── State repository ─────────────────────────────────────────────────
 	repo := repository.NewFileStateRepository("./db/state.yaml")
 
-	// ─── Конфигурация устройств / профилей ───────────────────────────────────
+	// ─── Device / profile configuration ───────────────────────────────────
 	devicesCfg, err := config.LoadDeviceConfig("./db/devices.yaml", repo)
 	if err != nil {
-		log.Fatalf("❌ Ошибка загрузки конфигурации: %v", err)
+		log.Fatalf("❌ Configuration loading error: %v", err)
 	}
 
-	// 🧠 Обновляем стейт всех игроков через Century API
+	// 🧠 Update state of all players via Century API
 	syncer.RefreshAllPlayersFromCentury(ctx, devicesCfg.AllGamers(), repo, appLogger)
 
-	// ─── Инициализация use‑case’ов ─────────────────────────────────────────────
+	// ─── Initialize use-cases ─────────────────────────────────────────────
 	usecaseLoader := config.NewUseCaseLoader("./usecases")
 
-	// ─── Предзагрузка use‑case’ов ────────────────────────────────────────────
+	// ─── Preload use-cases ────────────────────────────────────────────
 	redis_queue.PreloadQueues(ctx, rdb, devicesCfg.AllProfiles(), usecaseLoader)
 
-	// ── Запуск глобального рефиллера задач ───────────────────────────────
+	// ── Start global task refiller ───────────────────────────────
 	go redis_queue.StartGlobalUsecaseRefiller(ctx, devicesCfg, usecaseLoader, rdb, appLogger)
 
-	// ─── Инициализация правил анализа экрана ───────────────────────────────────────
+	// ─── Initialize screen analysis rules ───────────────────────────────────────
 	rulesUsecases, err := config.LoadAnalyzeRules("references/analyze.yaml")
 	if err != nil {
-		appLogger.Error("❌ Ошибка загрузки правил анализа экрана", slog.Any("err", err))
+		appLogger.Error("❌ Screen analysis rules loading error", slog.Any("err", err))
 		return
 	}
 
-	// 🌟 Инициализация TriggerEvaluator 🌟
+	// 🌟 Initialize TriggerEvaluator 🌟
 	triggerEvaluator := config.NewTriggerEvaluator()
 
-	// ─── Запуск устройств и ботов ────────────────────────────────────────────
+	// ─── Start devices and bots ────────────────────────────────────────────
 	var wg sync.WaitGroup
 
 	for _, devCfg := range devicesCfg.Devices {
@@ -105,22 +105,22 @@ func main() {
 
 			dev, err := device.New(dc.Name, dc.Profiles, devLog, "./references/area.json", rdb, triggerEvaluator)
 			if err != nil {
-				devLog.Error("❌ Ошибка создания устройства", slog.Any("err", err))
+				devLog.Error("❌ Device creation error", slog.Any("err", err))
 				return
 			}
 
 			activeGamer, pIdx, gIdx, err := dev.DetectAndSetCurrentGamer(ctx)
 			if err != nil || activeGamer == nil {
-				devLog.Warn("⚠️ Не удалось определить активного игрока", slog.Any("err", err))
+				devLog.Warn("⚠️ Failed to detect active player", slog.Any("err", err))
 				return
 			}
 
-			devLog.Info("▶️ Продолжаем с текущего игрока", slog.Int("pIdx", pIdx), slog.Int("gIdx", gIdx), slog.String("nickname", activeGamer.Nickname))
+			devLog.Info("▶️ Continuing with current player", slog.Int("pIdx", pIdx), slog.Int("gIdx", gIdx), slog.String("nickname", activeGamer.Nickname))
 
 			for {
 				select {
 				case <-ctx.Done():
-					devLog.Info("🛑 Остановка по контексту")
+					devLog.Info("🛑 Stopping due to context")
 					return
 				default:
 				}
@@ -137,7 +137,7 @@ func main() {
 				target := &dc.Profiles[pIdx].Gamer[gIdx]
 				if dev.ActiveGamer() == nil || dev.ActiveGamer().ID != target.ID {
 					if err := dev.SwitchTo(ctx, pIdx, gIdx); err != nil {
-						devLog.Warn("⚠️ Не удалось переключиться", slog.Any("err", err))
+						devLog.Warn("⚠️ Failed to switch", slog.Any("err", err))
 						gIdx++
 						continue
 					}

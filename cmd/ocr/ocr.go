@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	// 1) Загружаем все зоны из JSON
+	// 1) Load all zones from JSON
 	lookup, err := config.LoadAreaReferences("references/area.json")
 	if err != nil {
 		log.Fatalf("failed to load area references: %v", err)
@@ -24,7 +24,7 @@ func main() {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 
-	// 2) Берём первую зону "vip.state.isNotify"
+	// 2) Get first zone "vip.state.isNotify"
 	regionVIPIsNotifyRaw, ok := lookup.Get("vip.state.isNotify")
 	if !ok {
 		log.Fatal("area 'vip' not found")
@@ -37,7 +37,7 @@ func main() {
 		Y1: regionVIPIsNotifyRaw.Zone.Max.Y,
 	}
 
-	// 2.1) Берём вторую зону "gems"
+	// 2.1) Get second zone "gems"
 	regionGemsRaw, ok := lookup.Get("gems")
 	if !ok {
 		log.Fatal("area 'gems' not found")
@@ -50,7 +50,7 @@ func main() {
 		Y1: regionGemsRaw.Zone.Max.Y,
 	}
 
-	// 2.2) Берём третью зону "mail.isHasMail"
+	// 2.2) Get third zone "mail.isHasMail"
 	regionMailIsHasMailRaw, ok := lookup.Get("mail.isHasMail")
 	if !ok {
 		log.Fatal("area 'mail' not found")
@@ -63,7 +63,7 @@ func main() {
 		Y1: regionMailIsHasMailRaw.Zone.Max.Y,
 	}
 
-	// 2.3) Берём четвёртую зону "alliance.state.isAllianceContributeButton"
+	// 2.3) Get fourth zone "alliance.state.isAllianceContributeButton"
 	regionAllianceStateIsAllianceContributeButtonRaw, ok := lookup.Get("alliance.state.isAllianceContributeButton")
 	if !ok {
 		log.Fatal("area 'alliance.state.isAllianceContributeButton' not found")
@@ -76,10 +76,10 @@ func main() {
 		Y1: regionAllianceStateIsAllianceContributeButtonRaw.Zone.Max.Y,
 	}
 
-	// 3) Создаём ocr-клиент (лог можно передать nil, если не нужен)
+	// 3) Create ocr-client (logger can be nil if not needed)
 	client := ocrclient.NewClient("RF8RC00M8MF", logger)
 
-	// 4) Формируем FetchOCRRequest с регионом
+	// 4) Form FetchOCRRequest with region
 	reqBody := ocrclient.FetchOCRRequest{
 		DeviceID:  client.DeviceID,
 		DebugName: "power_zone",
@@ -90,7 +90,7 @@ func main() {
 		log.Fatalf("marshal request: %v", err)
 	}
 
-	// 5) POST + замер времени
+	// 5) POST + measure time
 	url := client.ServiceURL + "/ocr"
 	httpClient := &http.Client{Timeout: 20 * time.Second}
 	start := time.Now()
@@ -107,13 +107,13 @@ func main() {
 		log.Fatalf("unexpected status %d: %s", resp.StatusCode, body)
 	}
 
-	// 6) Декодируем []OCRZone (все поля уже описаны в ocrclient)
+	// 6) Decode []OCRZone (all fields already described in ocrclient)
 	var zones []ocrclient.OCRZone
 	if err := json.NewDecoder(resp.Body).Decode(&zones); err != nil {
 		log.Fatalf("decode response: %v", err)
 	}
 
-	// 7) Печатаем результат и время
+	// 7) Print result and time
 	for _, z := range zones {
 		res := z.ToOCRResult()
 		fmt.Printf("Text: %-20s  Score: %.2f  AvgColor: %-6s  BgColor: %-6s\n",
