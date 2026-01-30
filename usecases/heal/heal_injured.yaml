@@ -10,12 +10,12 @@ steps:
   - action: loop
     trigger: compareText(healInjured.state.isNext, "Heal Injured")
     steps:
-      - if: # если текуший статус -> "Лечить"
+      - if: # if current status -> "Heal"
           trigger: compareText(healInjured.state.statusHeal, "Heal")
           then:
-            - click: heal_injured_help_button # Начинаем лечение
+            - click: heal_injured_help_button # Start healing
             - wait: 200ms
-            - action: screenshot # проверяем наличие окна пополнения ресурсов
+            - action: screenshot # check for resource replenishment window
               analyze:
                 - name: healInjured.state.isReplenishAll
                   action: color_check
@@ -23,17 +23,17 @@ steps:
                   threshold: 0.5
 
             - if:
-                trigger: healInjured.state.isReplenishAll # Если не хватает ресурсов
+                trigger: healInjured.state.isReplenishAll # If not enough resources
                 then:
-                  - click: healInjured.state.isReplenishAll # Берем ресурсы из мешка
+                  - click: healInjured.state.isReplenishAll # Take resources from bag
                   - wait: 200ms
-                  - click: heal_injured_help_button # Начинаем лечение
+                  - click: heal_injured_help_button # Start healing
                   - wait: 100ms
-            - click: heal_injured_help_button # Просим помощь
+            - click: heal_injured_help_button # Request help
 
             - wait: 2s
 
-            - action: screenshot # проверяем наличие окна пополнения ресурсов
+            - action: screenshot # check for resource replenishment window
               analyze:
                 - name: healInjured.state.isNext
                   action: text
@@ -43,16 +43,16 @@ steps:
                   action: text
                   type: string
                   threshold: 0.7
-      - if: # если текуший статус -> "Лечить"
+      - if: # if current status -> "Heal"
           trigger: alliance.state.isNeedSupport
           then:
             - click: alliance.state.isNeedSupport
-            - action: screenshot               # 📸 Делаем скриншот текущего экрана
+            - action: screenshot               # 📸 Take screenshot of current screen
               analyze:
                 - name: alliance.state.isNeedSupport
                   action: exist
                   threshold: 0.7
-      - action: screenshot # обновляем статус кнопки лечения
+      - action: screenshot # update healing button status
         analyze:
           - name: healInjured.state.statusHeal
             action: text
@@ -62,7 +62,7 @@ steps:
             action: text
             type: string
             threshold: 0.9
-      - if: # fallback: на случай мисклика при клике на помощь
+      - if: # fallback: in case of misclick when clicking on help
           trigger: compareText(screenState.titleFact, "Chat")
           then:
             - action: loop_stop

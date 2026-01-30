@@ -9,4 +9,4 @@ trigger: "rally.state.troopType != 'infantry'"
 steps:
   - action: send_message
     to: rally.state.player
-    message: "⚠️ В составе ралли желательно использовать ближний бой. Пожалуйста, пересоберите войска."
+    message: "⚠️ It is preferable to use melee troops in the rally composition. Please reassemble your troops."

@@ -1,5 +1,5 @@
-#TODO: если строить больше N-часов (зависит от уровня или если больше 10часов) то сперва включить бафф губернатора (если доступен)
-#TODO: если можно строить два здания то подождать пока не будет доступно оба строительства что бы применить бафф губернатора для двух зданий
+#TODO: if building takes more than N hours (depends on level or if more than 10 hours) then first enable governor buff (if available)
+#TODO: if two buildings can be built then wait until both constructions are available to apply governor buff for both buildings
 
 name: Building Queue 1
 

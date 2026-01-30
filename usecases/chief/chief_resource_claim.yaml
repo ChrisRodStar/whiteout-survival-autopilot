@@ -1,5 +1,5 @@
-# TODO: проверять что хватает ресурсов и докупать если не хватает
-# TODO: научиться парсить 4.5M как 4500000 для корректной работы триггеров
+# TODO: check that there are enough resources and buy more if not enough
+# TODO: learn to parse 4.5M as 4500000 for correct trigger operation
 
 name: Chief Resource Claim
 
@@ -9,34 +9,34 @@ trigger: chief.state.isUrgentMobilization && chief.state.isProductivityDay && ch
 
 priority: 10
 
-# Для получения максимального количества ресурсов нам нужно выполнить последовательное комбо из трех приказов губернатора
+# To get maximum resources we need to execute a sequential combo of three governor orders
 steps:
-  # Клик на кнопку "Мобилизация"
+  # Click on "Mobilization" button
   - click: chief.state.isUrgentMobilization
   - wait: 3s
-  - click: chief_orders_enact # Подтверждение приказа
+  - click: chief_orders_enact # Order confirmation
   - wait: 3s
-  - click: to_chief_orders # После выполнения приказа нас перекидывает на страницу города, следовательно, нужно вернуться на страницу губернатора
-  - wait: 200ms # для отрисовки анимации
+  - click: to_chief_orders # After executing the order we are redirected to the city page, so we need to return to the governor page
+  - wait: 200ms # for animation rendering
 
-  # Клик на кнопку "Универсальная помощь"
+  # Click on "Universal Help" button
   - click: chief.state.isProductivityDay
   - wait: 3s
   - click: chief_orders_enact
   - wait: 3s
-  - click: to_chief_orders # После выполнения приказа нас перекидывает на страницу города, следовательно, нужно вернуться на страницу губернатора
-  - wait: 200ms # для отрисовки анимации
+  - click: to_chief_orders # After executing the order we are redirected to the city page, so we need to return to the governor page
+  - wait: 200ms # for animation rendering
 
-  # Клик на кнопку "Специальный заказ"
+  # Click on "Special Order" button
   - click: chief.state.isRushJob
   - wait: 3s
   - click: chief_orders_enact
   - wait: 5s
-  - click: to_chief_orders # скипаем уведомление о награде
+  - click: to_chief_orders # skip reward notification
   - wait: 500ms
-  - click: to_chief_orders # После выполнения приказа нас перекидывает на страницу города, следовательно, нужно вернуться на страницу губернатора
+  - click: to_chief_orders # After executing the order we are redirected to the city page, so we need to return to the governor page
 
   - pushUsecase:
       - trigger: true # Always trigger
         list:
-          - name: Check Chief # Обновим информацию о приказах губернатора
+          - name: Check Chief # Update information about governor orders

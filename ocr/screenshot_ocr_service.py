@@ -28,7 +28,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         path = request.url.path
         start_time = time.time()
 
-        # Читаем тело запроса
+        # Read request body
         body_bytes = await request.body()
         try:
             body = json.loads(body_bytes.decode())
@@ -37,18 +37,18 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         print(f"[REQ] {path} ⬇️ {body}")
 
-        # Переотправим тело запроса, потому что .body() можно прочитать только один раз
+        # Resend request body, because .body() can only be read once
         async def receive():
             return {"type": "http.request", "body": body_bytes}
 
         response = await call_next(Request(request.scope, receive))
 
-        # Сохраняем тело ответа (если есть)
+        # Save response body (if exists)
         response_body = b""
         async for chunk in response.body_iterator:
             response_body += chunk
 
-        # Восстанавливаем асинхронный итератор из байтов
+        # Restore async iterator from bytes
         async def new_body_iterator() -> AsyncIterator[bytes]:
             yield response_body
 
@@ -133,8 +133,8 @@ class FindImageResponse(BaseModel):
 class WaitRequest(BaseModel):
     stop_words: List[str]
     device_id: Optional[str] = None
-    timeout: float            # в секундах
-    interval: float           # в секундах
+    timeout: float            # in seconds
+    interval: float           # in seconds
     debug_name: Optional[str] = None
     regions: Optional[List[Region]] = None
 
@@ -203,60 +203,60 @@ def on_startup():
 # --- Screenshot cache -------------------------------------------------------
 def get_screenshot(device_id: str = None) -> np.ndarray:
     """
-    Захватываем «сырые» кадры RGBA без промежуточных файлов:
+    Capture raw RGBA frames without intermediate files:
       • adb exec-out screencap (raw mode)
-      • разбираем 12-байтовый заголовок (width, height, format)
-      • получаем w*h*4 байт пикселей RGBA
-      • конвертируем в BGR для OpenCV
+      • parse 12-byte header (width, height, format)
+      • get w*h*4 bytes of RGBA pixels
+      • convert to BGR for OpenCV
     """
-    # 1) Собираем команду
+    # 1) Build command
     cmd = ["adb"]
     if device_id:
         cmd += ["-s", device_id]
     cmd += ["exec-out", "screencap"]
 
-    # 2) Запускаем и читаем все байты
+    # 2) Execute and read all bytes
     raw = subprocess.check_output(cmd)
 
-    # 3) Парсим заголовок: <width:uint32><height:uint32><format:uint32>
+    # 3) Parse header: <width:uint32><height:uint32><format:uint32>
     if len(raw) < 12:
         raise RuntimeError("Unexpected screencap output: too short for header")
     w, h, fmt = struct.unpack("<III", raw[:12])
     if fmt != 1:  # 1 == RGBA_8888
         raise RuntimeError(f"Unsupported format code: {fmt}")
 
-    # 4) Достаём пиксельные данные
+    # 4) Extract pixel data
     expected = w * h * 4
     body = raw[12:]
     if len(body) < expected:
         raise RuntimeError(f"Screencap truncated: got {len(body)} of {expected} bytes")
 
-    # 5) Формируем NumPy-массив RGBA
+    # 5) Form NumPy RGBA array
     img_rgba = np.frombuffer(body[:expected], dtype=np.uint8).reshape((h, w, 4))
 
-    # 6) Переводим RGBA → BGR
+    # 6) Convert RGBA → BGR
     img_bgr = cv2.cvtColor(img_rgba, cv2.COLOR_RGBA2BGR)
     return img_bgr
 
 # --- Color picker -----------------------------------------------------------
 def pick_color_fast(pixels: np.ndarray) -> str:
     """
-    Корректно классифицирует серые с оттенком как gray, только насыщенные пиксели считаются цветными.
+    Correctly classifies grays with tint as gray, only saturated pixels are considered colored.
     """
-    bgr = np.uint8([[pixels[::-1]]])  # BGR для OpenCV
+    bgr = np.uint8([[pixels[::-1]]])  # BGR for OpenCV
     hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)[0, 0]
     h, s, v = int(hsv[0]), int(hsv[1]), int(hsv[2])
 
-    # Белый/чёрный по низкой насыщенности и яркости
+    # White/black by low saturation and brightness
     if s < 35 and v > 220:
         return "white"
     if s < 35 and v < 70:
         return "black"
-    # ВСЁ, что менее насыщенное (даже с холодным оттенком) — gray
+    # EVERYTHING less saturated (even with cool tint) — gray
     if s < 60:
         return "gray"
 
-    # Теперь цвета по hue
+    # Now colors by hue
     if (h < 10 or h >= 170):
         return "red"
     if 10 <= h < 35:
@@ -274,17 +274,17 @@ def pick_color_for_ring(pixels: np.ndarray) -> str:
     most_common = Counter(colors).most_common(1)
     return most_common[0][0] if most_common else "gray"
 
-# --- Обработка региона и распознавание текста --------------
+# --- Region processing and text recognition --------------
 def process_roi(img: np.ndarray, region: Region) -> List[Zone]:
     """
-    OCR по заданному региону + определение avg_color текста и bg_color фона.
-    Вместо жёсткого порога белого используется бинаризация Otsu,
-    чтобы корректно ловить и жёлтый текст.
+    OCR for given region + determination of avg_color of text and bg_color of background.
+    Instead of hard white threshold, Otsu binarization is used
+    to correctly catch yellow text as well.
     """
     zones: List[Zone] = []
     h, w = img.shape[:2]
 
-    # Нормализуем и проверяем регион
+    # Normalize and check region
     x0 = max(0, min(region.x0, w))
     x1 = max(0, min(region.x1, w))
     y0 = max(0, min(region.y0, h))
@@ -292,12 +292,12 @@ def process_roi(img: np.ndarray, region: Region) -> List[Zone]:
     if x1 <= x0 or y1 <= y0:
         return zones
 
-    # Выделяем ROI и guard
+    # Extract ROI and guard
     roi_full = img[y0:y1, x0:x1]
     if roi_full.size == 0:
         return zones
 
-    # Попытаемся вызвать OCR до 5 раз при ошибке allocator'а
+    # Try to call OCR up to 5 times on allocator error
     raw = []
     last_err = None
     for attempt in range(1, 6):
@@ -310,15 +310,15 @@ def process_roi(img: np.ndarray, region: Region) -> List[Zone]:
             if "No allocator found for the place" in msg:
                 print(f"[WARN] Paddle OCR allocator error (attempt {attempt}/3), reinit services and retry...")
                 last_err = e
-                # Переинициализируем модель
+                # Reinitialize model
                 init_services()
                 time.sleep(1)
                 continue
             else:
-                # какая-то другая RuntimeError — пробрасываем сразу
+                # some other RuntimeError — throw immediately
                 raise
     else:
-        # вышли по exhausted attempts
+        # exhausted attempts
         raise RuntimeError(f"OCR failed after retries: {last_err}")
 
     if not raw:
@@ -328,12 +328,12 @@ def process_roi(img: np.ndarray, region: Region) -> List[Zone]:
     palette = np.stack(list(COLOR_MAP.values()), axis=0).astype(np.int16)
 
     for box, (text, score) in raw:
-        # Сдвигаем box в координаты полного img
+        # Shift box to full img coordinates
         pts = np.array(box, dtype=int)
         pts[:,0] += x0
         pts[:,1] += y0
 
-        # Вырезаем точную внутреннюю обрезку
+        # Cut exact inner crop
         xs, ys = pts[:,0], pts[:,1]
         bx0, bx1 = np.clip([xs.min(), xs.max()], 0, w)
         by0, by1 = np.clip([ys.min(), ys.max()], 0, h)
@@ -344,7 +344,7 @@ def process_roi(img: np.ndarray, region: Region) -> List[Zone]:
         if roi.size == 0:
             continue
 
-        # === avg_color текста через Otsu ===
+        # === avg_color of text via Otsu ===
         gray_roi = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
         _, text_mask = cv2.threshold(
             gray_roi, 0, 255,
@@ -354,7 +354,7 @@ def process_roi(img: np.ndarray, region: Region) -> List[Zone]:
         avg_rgb = (int(mean_val[2]), int(mean_val[1]), int(mean_val[0]))
         avg_color = pick_color_fast(np.array(avg_rgb))
 
-        # === bg_color по кольцевой зоне ===
+        # === bg_color by ring zone ===
         mask = np.zeros((h, w), dtype=np.uint8)
         cv2.fillPoly(mask, [pts.reshape(-1,1,2)], 255)
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7,7))
@@ -380,8 +380,8 @@ def process_roi(img: np.ndarray, region: Region) -> List[Zone]:
 
 def batch_ocr(img: np.ndarray, regions: List[Region]) -> List[Zone]:
     """
-    Проходим по каждому region и вызываем process_roi(img, region):
-    в нём происходит вся обрезка и OCR.
+    Go through each region and call process_roi(img, region):
+    all cropping and OCR happens there.
     """
     results: List[Zone] = []
     for r in regions:
@@ -389,7 +389,7 @@ def batch_ocr(img: np.ndarray, regions: List[Region]) -> List[Zone]:
     return results
 
 def iou(a: np.ndarray, b: np.ndarray) -> float:
-    # a, b — по 4 точки [[x0,y0],[x1,y0],[x1,y1],[x0,y1]]
+    # a, b — 4 points each [[x0,y0],[x1,y0],[x1,y1],[x0,y1]]
     ax0, ay0 = a[0]
     ax1, ay1 = a[2]
     bx0, by0 = b[0]
@@ -404,8 +404,8 @@ def iou(a: np.ndarray, b: np.ndarray) -> float:
 
 def nms_boxes(all_boxes: List[List[List[int]]], thresh: float=0.5) -> List[List[List[int]]]:
     """
-    all_boxes: список полигонов 4 точек [[ [x0,y0],... ], ...]
-    thresh: IoU-порог
+    all_boxes: list of 4-point polygons [[ [x0,y0],... ], ...]
+    thresh: IoU threshold
     """
     keep = []
     for box in all_boxes:
@@ -422,27 +422,27 @@ def nms_boxes(all_boxes: List[List[List[int]]], thresh: float=0.5) -> List[List[
 @app.post("/ocr", response_model=List[Zone])
 async def ocr_endpoint(req: OcrRequest):
     """
-    Одноразовый OCR по списку регионов, с автоповтором при ошибке
-    'No allocator found for the place' до 3 раз.
+    One-time OCR for list of regions, with auto-retry on error
+    'No allocator found for the place' up to 3 times.
     """
     max_attempts = 5
     for attempt in range(1, max_attempts + 1):
         start = time.time()
         loop = asyncio.get_running_loop()
         try:
-            # 1) Снимаем скрин
+            # 1) Take screenshot
             screen = await loop.run_in_executor(None, get_screenshot, req.device_id)
 
-            # 2) Если нет регионов — анализируем весь экран
+            # 2) If no regions — analyze whole screen
             if not req.regions:
                 req.regions = [Region(x0=0, y0=0, x1=screen.shape[1], y1=screen.shape[0])]
 
             all_results: List[Zone] = []
             h, w = screen.shape[:2]
 
-            # 3) Проходим по каждому региону
+            # 3) Go through each region
             for r in req.regions:
-                # нормализуем границы
+                # normalize boundaries
                 x0 = max(0, min(r.x0, w))
                 x1 = max(0, min(r.x1, w))
                 y0 = max(0, min(r.y0, h))
@@ -450,7 +450,7 @@ async def ocr_endpoint(req: OcrRequest):
                 if x1 <= x0 or y1 <= y0:
                     continue
 
-                # вызываем OCR
+                # call OCR
                 zones: List[Zone] = await loop.run_in_executor(
                     None, process_roi, screen, Region(x0=x0, y0=y0, x1=x1, y1=y1)
                 )
@@ -458,7 +458,7 @@ async def ocr_endpoint(req: OcrRequest):
                 if zones:
                     all_results.extend(zones)
                 else:
-                    # фон всего региона
+                    # background of entire region
                     roi = screen[y0:y1, x0:x1]
                     mean_val = cv2.mean(roi)
                     avg_rgb = np.array([int(mean_val[2]), int(mean_val[1]), int(mean_val[0])])
@@ -472,7 +472,7 @@ async def ocr_endpoint(req: OcrRequest):
                         bg_color=bg_color,
                     ))
 
-            # DEBUG-снимок
+            # DEBUG snapshot
             if DEBUG_MODE:
                 debug_path = os.path.join(
                     "out",
@@ -488,7 +488,7 @@ async def ocr_endpoint(req: OcrRequest):
         except RuntimeError as e:
             msg = str(e)
             if "No allocator found for the place" in msg and attempt < max_attempts:
-                wait_time = 1 * attempt  # например, 1, 2, 3, 4 секунды...
+                wait_time = 1 * attempt  # e.g., 1, 2, 3, 4 seconds...
                 print(f"[WARN] Paddle OCR allocator error (attempt {attempt}/{max_attempts}), "
                       f"reinit services, wait {wait_time}s and retry…")
                 init_services()
@@ -497,7 +497,7 @@ async def ocr_endpoint(req: OcrRequest):
 
             print(f"[ERROR] OCR endpoint failed after {attempt} attempts: {msg}")
             raise HTTPException(status_code=500, detail=f"OCR failed after {attempt} attempts: {msg}")
-    # если все попытки исчерпаны, здесь мы уже пробросили ошибку выше
+    # if all attempts exhausted, we already threw error above
 
 
 @app.post("/find_image", response_model=FindImageResponse)
@@ -522,7 +522,7 @@ async def find_image_endpoint(req: FindRequest):
             x1, y1 = x0 + tpl.shape[1], y0 + tpl.shape[0]
             raw_boxes.append([[x0, y0], [x1, y0], [x1, y1], [x0, y1]])
 
-    # отбираем неперекрывающиеся
+    # select non-overlapping
     filtered = nms_boxes(raw_boxes, thresh=0.5)
     return FindImageResponse(found=bool(filtered), boxes=filtered)
 
@@ -530,24 +530,24 @@ async def find_image_endpoint(req: FindRequest):
 @app.post("/wait_for_text", response_model=List[Zone])
 async def wait_for_text_endpoint(req: WaitRequest = Body(...)):
     """
-    Опрос /ocr до тех пор, пока в одной из зон не встретится любое стоп-слово (case-insensitive),
-    либо не выйдет время timeout. Интервал между запросами — interval.
+    Poll /ocr until any stop word (case-insensitive) is found in one of the zones,
+    or timeout expires. Interval between requests — interval.
     """
     start = time.time()
     loop = asyncio.get_running_loop()
 
     while True:
-        # 1) Захват экрана
+        # 1) Capture screen
         screen = await loop.run_in_executor(None, get_screenshot, req.device_id)
 
-        # 2) OCR в нужных регионах или по всему экрану
+        # 2) OCR in needed regions or whole screen
         if req.regions:
             zones = await loop.run_in_executor(None, batch_ocr, screen, req.regions)
         else:
             full = Region(x0=0, y0=0, x1=screen.shape[1], y1=screen.shape[0])
             zones = await loop.run_in_executor(None, process_roi, screen, full)
 
-        # 3) Ищем стоп-слова (case-insensitive)
+        # 3) Search for stop words (case-insensitive)
         found = False
         for z in zones:
             txt = z.text.lower()
@@ -558,18 +558,18 @@ async def wait_for_text_endpoint(req: WaitRequest = Body(...)):
             if found:
                 break
 
-        # 4) Если нашли — сохраняем DEBUG-кадр и возвращаем все зоны
+        # 4) If found — save DEBUG frame and return all zones
         if found:
             if DEBUG_MODE and req.debug_name:
                 debug_path = os.path.join("out", f"{req.debug_name}.png")
                 await loop.run_in_executor(None, cv2.imwrite, debug_path, screen)
             return zones
 
-        # 5) Проверяем таймаут
+        # 5) Check timeout
         if time.time() - start >= req.timeout:
-            return []  # ничего не нашли
+            return []  # nothing found
 
-        # 6) Ждём interval
+        # 6) Wait interval
         await asyncio.sleep(req.interval)
 
 # --- Main -------------------------------------------------------------------

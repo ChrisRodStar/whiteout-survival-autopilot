@@ -7,9 +7,9 @@ priority: 25
 steps:
   - click: mail_read_and_claim_all
   - wait: 1s
-  - click: mail_read_and_claim_all # второй клик, что бы скипнуть reward сообщение (если будет)
+  - click: mail_read_and_claim_all # second click to skip reward message (if any)
   - wait: 1s
-  - action: screenshot # делаем скриншот, что бы проверить, что все письма прочитаны
+  - action: screenshot # take screenshot to verify all mail has been read
     analyze:
       - name: mail.state.isReports
         action: text

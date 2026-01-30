@@ -1,6 +1,6 @@
 # TODO:
-# 1. Проверять что x2 и auto активированы (кнопки желтого цвета), если нет - включить
-# 2. quick_deploy_button делать отдельным юзкейсом с более высоким приоритетом
+# 1. Check that x2 and auto are activated (buttons are yellow), if not - enable them
+# 2. Make quick_deploy_button a separate usecase with higher priority
 
 name: Exploration Battle
 
@@ -12,7 +12,7 @@ ttl: 10h
 
 priority: 10
 
-cron: "0 */12 * * *" # каждые 12 часов
+cron: "0 */12 * * *" # every 12 hours
 
 steps:
   - click: quick_deploy_button
@@ -21,7 +21,7 @@ steps:
   - wait: 10s
 
   - action: loop
-    # Цикл продолжается, пока lowerAscii(battleStatus) не содержит ни "defeat", ни "victory"
+    # Loop continues while lowerAscii(battleStatus) contains neither "defeat" nor "victory"
     trigger: '!(exploration.state.battleStatus.lowerAscii().contains("defeat") || exploration.state.battleStatus.lowerAscii().contains("victory"))'
     steps:
       - action: screenshot

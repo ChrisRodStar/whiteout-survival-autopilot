@@ -1,6 +1,6 @@
 name: Arena Set Defensive Squad Lineup
 
-# Ставим 15, что бы сработало до начала первого боя
+# Set to 15 so it triggers before the first battle
 priority: 15
 
 ttl: 20h

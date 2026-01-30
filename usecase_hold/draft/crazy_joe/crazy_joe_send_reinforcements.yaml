@@ -9,7 +9,7 @@ trigger: "crazy_joe.state.wave < 9 && crazy_joe.state.hasReinforced == false"
 steps:
   - click: alliance_fortress_button
   - wait: 500ms
-  - click: select_ally_fortress        # Выбрать союзника для поддержки
+  - click: select_ally_fortress        # Select ally to support
   - wait: 500ms
   - click: send_reinforcement_button
   - wait: 200ms

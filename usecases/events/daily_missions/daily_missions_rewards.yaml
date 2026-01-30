@@ -5,7 +5,7 @@ node: daily_missions
 priority: 20
 
 steps:
-  - if: # Если доступна кнопка "Claim All", то просто нажимаем ее
+  - if: # If "Claim All" button is available, just click it
       trigger: dailyMissions.state.isClaimAll
       then:
         - click: dailyMissions.state.isClaimAll
@@ -18,7 +18,7 @@ steps:
           set: dailyMissions.state.isClaimAll
           to: false
 
-  - if: # Если кнопка "Claim All" недоступна, то ищем и нажимаем каждую кнопку "Claim"
+  - if: # If "Claim All" button is not available, find and click each "Claim" button
       trigger: "!dailyMissions.state.isClaimAll && dailyMissions.state.isClaimButton"
       then:
         - action: loop

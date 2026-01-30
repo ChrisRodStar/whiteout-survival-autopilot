@@ -1,17 +1,17 @@
-# Примеры ADB-свайпов из пресетов (экран 1080x2400, 300px)
+# ADB Swipe Examples from Presets (screen 1080x2400, 300px)
 
-| Куда едет контент | Команда                                                                 |
+| Content Direction | Command                                                                 |
 |-------------------|-------------------------------------------------------------------------|
-| **Вправо**        | `adb -s RF8RC00M8MF shell input touchscreen swipe 540 1200 240 1200 400` |
-| **Влево**         | `adb -s RF8RC00M8MF shell input touchscreen swipe 540 1200 840 1200 400` |
-| **Вверх**         | `adb -s RF8RC00M8MF shell input touchscreen swipe 540 1200 540 1500 400` |
-| **Вниз**          | `adb -s RF8RC00M8MF shell input touchscreen swipe 540 1200 540 900 400`  |
+| **Right**         | `adb -s RF8RC00M8MF shell input touchscreen swipe 540 1200 240 1200 400` |
+| **Left**          | `adb -s RF8RC00M8MF shell input touchscreen swipe 540 1200 840 1200 400` |
+| **Up**            | `adb -s RF8RC00M8MF shell input touchscreen swipe 540 1200 540 1500 400` |
+| **Down**          | `adb -s RF8RC00M8MF shell input touchscreen swipe 540 1200 540 900 400`  |
 
-**Формат:**  
+**Format:**  
 `adb -s <device_id> shell input touchscreen swipe <x1> <y1> <x2> <y2> <duration_ms>`
 
-- `<x1> <y1>` — стартовая точка
-- `<x2> <y2>` — конечная точка
-- `<duration_ms>` — длительность свайпа
+- `<x1> <y1>` — starting point
+- `<x2> <y2>` — ending point
+- `<duration_ms>` — swipe duration
 
-> Для других направлений/смещений — меняй координаты аналогично.
+> For other directions/offsets — change coordinates accordingly.

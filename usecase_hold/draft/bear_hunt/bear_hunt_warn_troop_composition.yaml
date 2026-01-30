@@ -9,4 +9,4 @@ trigger: "rally.state.badTroopRatio >= 0.3"
 steps:
   - action: send_message
     to: rally.state.player
-    message: "❗ У вас слишком много лучников или осадных войск. Подкорректируйте состав."
+    message: "❗ You have too many archers or siege troops. Please adjust your composition."

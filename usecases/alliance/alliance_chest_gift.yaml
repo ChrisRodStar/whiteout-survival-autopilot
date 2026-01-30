@@ -7,7 +7,7 @@ trigger: alliance.state.isGiftClaimAllButton || alliance.state.isClaimButton
 priority: 20
 
 steps:
-  - if: # Если доступна кнопка "Claim All", то просто нажимаем ее
+  - if: # If "Claim All" button is available, just click it
       trigger: alliance.state.isGiftClaimAllButton
       then:
         - click: alliance.state.isGiftClaimAllButton
@@ -16,7 +16,7 @@ steps:
         - wait: 500ms
         - click: tap_anywhere_to_exit
         - wait: 200ms
-  - if: # Если кнопка "Claim All" недоступна, то ищем и нажимаем каждую кнопку "Claim"
+  - if: # If "Claim All" button is not available, find and click each "Claim" button
       trigger: "!alliance.state.isGiftClaimAllButton && alliance.state.isClaimButton"
       then:
         - action: loop

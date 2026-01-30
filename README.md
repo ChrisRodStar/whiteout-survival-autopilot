@@ -19,8 +19,8 @@
 
 ```text
 ┌──────────┐      ┌─────────┐      ┌───────────┐
-│  Device  │◀────▶│  Redis  │◀────▶│ Go Autop. │
-│ (ADB UI) │      │  (pub/sub)│     │  Service │
+│  Device  │◀───▶│  Redis  │◀───▶│ Go Autop. │
+│ (ADB UI) │      │(pub/sub)│      │  Service  │
 └──────────┘      └─────────┘      └───────────┘
        ▲                              │
        │                              ▼

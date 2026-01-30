@@ -1,29 +1,29 @@
-# TODO: добавить кейс нехватки ресурсов - obtain more
+# TODO: add case for resource shortage - obtain more
 
-name: Upgrade Alliance Tech # Название usecase — улучшение технологии альянса
+name: Upgrade Alliance Tech # Usecase name — upgrade alliance technology
 
-node: alliance_tech         # Стартовый экран — "технологии альянса"
+node: alliance_tech         # Starting screen — "alliance technologies"
 
 priority: 20
 
-ttl: 90m                    # Таймаут: повторное выполнение возможно через 90 минут
+ttl: 90m                    # Timeout: re-execution possible after 90 minutes
 
 steps:
-  - action: screenshot               # 📸 Ищем иконку технологии с зелёным пальцем вверх (избранная технология)
+  - action: screenshot               # 📸 Look for technology icon with green thumbs up (favorite technology)
     analyze:
       - name: alliance.tech.favorite
         action: findIcon
         threshold: 0.8
-        saveAsRegion: true          # 💾 Сохраняем зону найденной иконки под именем alliance.tech.favorite
+        saveAsRegion: true          # 💾 Save found icon zone under name alliance.tech.favorite
 
-  - click: alliance.tech.favorite   # 👉 Кликаем по найденной технологии, чтобы открыть экран с кнопкой "Contribute"
+  - click: alliance.tech.favorite   # 👉 Click on found technology to open screen with "Contribute" button
 
-  - wait: 200ms # Ждем отрисовки анимации
+  - wait: 200ms # Wait for animation rendering
 
-  - action: screenshot               # 📸 Делаем скриншот текущего экрана
+  - action: screenshot               # 📸 Take screenshot of current screen
     analyze:
       - name: alliance.state.isAllianceContributeButton
-        action: color_check          # 🎨 Проверяем цвет кнопки "Contribute"
+        action: color_check          # 🎨 Check color of "Contribute" button
         expectedColorBg: blue
         threshold: 0.5
 
@@ -32,13 +32,13 @@ steps:
       then:
         - click: alliance_tech_contribute_back
 
-  - action: loop                     # 🔁 Запускаем цикл, пока кнопка "Contribute" остаётся синей
+  - action: loop                     # 🔁 Start loop while "Contribute" button remains blue
     trigger: alliance.state.isAllianceContributeButton
     steps:
       - longtap: alliance.state.isAllianceContributeButton
-        wait: 3s                     # 🧷 Удерживаем кнопку (longtap) 3 секунды — это усиливает вклад
+        wait: 3s                     # 🧷 Hold button (longtap) for 3 seconds — this increases contribution
 
-      - action: screenshot           # 📸 После нажатия снова делаем скриншот
+      - action: screenshot           # 📸 After pressing, take screenshot again
         analyze:
           - name: alliance.state.isAllianceContributeButton
             action: color_check

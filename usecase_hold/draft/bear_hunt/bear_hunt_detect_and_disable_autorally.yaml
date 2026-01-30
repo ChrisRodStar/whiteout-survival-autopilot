@@ -4,7 +4,7 @@ node: alliance_war
 
 ttl: 30m
 
-# Событие активно, если иконка Bear Hunt найдена в разделе альянс-война
+# Event is active if Bear Hunt icon is found in alliance war section
 trigger: "alliance_war.state.isBearHuntEvent == true"
 
 steps:
@@ -13,13 +13,13 @@ steps:
       - name: alliance_war.state.isBearHuntEvent
         action: exist
         threshold: 0.85
-        region: bear_hunt_icon    # Регион с иконкой события, желательно отметить через `saveAsRegion`
+        region: bear_hunt_icon    # Region with event icon, preferably mark via `saveAsRegion`
 
   - if:
       trigger: "alliance_war.state.isBearHuntEvent == true"
       then:
         - click: auto_rally_settings_button
         - wait: 200ms
-        - click: auto_rally_toggle_off      # Если включено, отключаем
+        - click: auto_rally_toggle_off      # If enabled, disable it
         - wait: 300ms
         - click: auto_rally_close_button

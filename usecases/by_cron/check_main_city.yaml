@@ -8,7 +8,7 @@ node: main_city
 
 steps:
   - if:
-      trigger: healInjured.state.isAvailable # Если по какой-то причине не долечили
+      trigger: healInjured.state.isAvailable # If for some reason healing was not completed
       then:
         - pushUsecase:
             - trigger: healInjured.state.isAvailable

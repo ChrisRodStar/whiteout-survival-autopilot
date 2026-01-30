@@ -59,7 +59,7 @@ func main() {
 	})
 
 	// ── Metrics ───────────────────────────────────────────────────────────────
-	metrics.StartExporter()
+	// metrics.StartExporter() // Disabled: no external metrics collection
 
 	// ─── State repository ─────────────────────────────────────────────────
 	repo := repository.NewFileStateRepository("./db/state.yaml")

@@ -6,7 +6,7 @@ priority: 20
 
 
 steps:
-  - if: # Если доступна кнопка "Claim All", то просто нажимаем ее
+  - if: # If "Claim All" button is available, just click it
       trigger: growthMissions.state.isClaimAll
       then:
         - click: growthMissions.state.isClaimAll
@@ -19,7 +19,7 @@ steps:
           set: growthMissions.state.isClaimAll
           to: false
 
-  - if: # Если кнопка "Claim All" недоступна, то ищем и нажимаем каждую кнопку "Claim"
+  - if: # If "Claim All" button is not available, find and click each "Claim" button
       trigger: "!growthMissions.state.isClaimAll && growthMissions.state.isClaimButton"
       then:
         - action: loop

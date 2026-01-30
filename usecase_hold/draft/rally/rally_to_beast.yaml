@@ -10,7 +10,7 @@ steps:
   - click: to_world_map
   - wait: 1s
 
-  - click: beast_target_icon      # Найти зверя
+  - click: beast_target_icon      # Find beast
   - wait: 500ms
 
   - click: rally_start_button

@@ -4,13 +4,13 @@ node: alliance_war
 
 ttl: 30m
 
-# Если события уже нет и авторалли выключен — включить обратно
+# If event is already gone and auto rally is disabled — enable it back
 trigger: "alliance_war.state.isBearHuntEvent == false && alliance_war.state.autoRallyEnabled == false"
 
 steps:
   - click: auto_rally_settings_button
   - wait: 200ms
-  - click: auto_rally_toggle_on     # Включаем обратно
+  - click: auto_rally_toggle_on     # Enable it back
   - wait: 300ms
   - click: auto_rally_close_button
   - set: alliance_war.state.autoRallyEnabled

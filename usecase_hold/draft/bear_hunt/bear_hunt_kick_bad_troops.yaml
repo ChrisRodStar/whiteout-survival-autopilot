@@ -11,4 +11,4 @@ steps:
     player: rally.state.player
   - action: send_message
     to: rally.state.player
-    message: "🚫 Вы были исключены из ралли из-за неподходящего состава войск."
+    message: "🚫 You were removed from the rally due to inappropriate troop composition."

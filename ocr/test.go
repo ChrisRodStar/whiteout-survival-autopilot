@@ -11,7 +11,7 @@ import (
 	"github.com/batazor/whiteout-survival-autopilot/internal/config"
 )
 
-// тот же Region для JSON
+// same Region for JSON
 type Region struct {
 	X0 int `json:"x0"`
 	Y0 int `json:"y0"`
@@ -28,13 +28,13 @@ type OCRZone struct {
 	Crop     string  `json:"crop,omitempty"`
 }
 
-// FindImageResponse соответствует JSON-ответу /find_image
+// FindImageResponse corresponds to JSON response from /find_image
 type FindImageResponse struct {
 	Found bool      `json:"found"`
-	Boxes [][][]int `json:"boxes"` // каждый box — [[x1,y1],[x2,y2],[x3,y3],[x4,y4]]
+	Boxes [][][]int `json:"boxes"` // each box — [[x1,y1],[x2,y2],[x3,y3],[x4,y4]]
 }
 
-// fetchOCR делает GET /ocr?device_id=&debug_name=
+// fetchOCR makes GET /ocr?device_id=&debug_name=
 func fetchOCR(serviceURL, deviceID, debugName string) ([]OCRZone, error) {
 	u, err := url.Parse(serviceURL + "/ocr")
 	if err != nil {
@@ -67,9 +67,9 @@ func fetchOCR(serviceURL, deviceID, debugName string) ([]OCRZone, error) {
 	return zones, nil
 }
 
-// fetchWaitForText делает POST /wait_for_text?debug_name=
+// fetchWaitForText makes POST /wait_for_text?debug_name=
 func fetchWaitForText(serviceURL, deviceID, debugName string, stopWords []string, timeout, interval float64) ([]OCRZone, error) {
-	// тело запроса
+	// request body
 	body := map[string]interface{}{
 		"stop_words": stopWords,
 		"device_id":  deviceID,
@@ -78,7 +78,7 @@ func fetchWaitForText(serviceURL, deviceID, debugName string, stopWords []string
 	}
 	b, _ := json.Marshal(body)
 
-	// строим URL с debug_name
+	// build URL with debug_name
 	u, _ := url.Parse(serviceURL + "/wait_for_text")
 	if debugName != "" {
 		q := u.Query()
@@ -141,7 +141,7 @@ func callExampleWait() {
 	}
 }
 
-// fetchFindImage делает GET /find_image?image_name=<name>&device_id=<serial>&threshold=<t>&debug_name=<fn>
+// fetchFindImage makes GET /find_image?image_name=<name>&device_id=<serial>&threshold=<t>&debug_name=<fn>
 func fetchFindImage(serviceURL, deviceID, imageName string, threshold float64, debugName string) (*FindImageResponse, error) {
 	u, err := url.Parse(serviceURL + "/find_image")
 	if err != nil {
@@ -181,8 +181,8 @@ func fetchFindImage(serviceURL, deviceID, imageName string, threshold float64, d
 func callExampleFind() {
 	fmt.Println("=== Example Find Image ===")
 	svc := "http://localhost:8000"
-	serial := "RF8RC00M8MF"                     // ваш ADB serial или пусто
-	imageName := "alliance.state.isNeedSupport" // имя файла ../references/screenshots/handshake.png
+	serial := "RF8RC00M8MF"                     // your ADB serial or empty
+	imageName := "alliance.state.isNeedSupport" // file name ../references/screenshots/handshake.png
 	threshold := 0.8
 	debug := "find_debug.png"
 
@@ -202,13 +202,13 @@ func callExampleFind() {
 }
 
 func callExampleOCRByZoneName() {
-	// 1) Загружаем area.json
+	// 1) Load area.json
 	lookup, err := config.LoadAreaReferences("references/area.json")
 	if err != nil {
 		panic(fmt.Errorf("load area references: %w", err))
 	}
 
-	// 2) Получаем *BBox по имени
+	// 2) Get *BBox by name
 	bbox, err := lookup.GetRegionByName("screenState.titleFact")
 	if err != nil {
 		fmt.Println("Region not found:", err)
@@ -216,9 +216,9 @@ func callExampleOCRByZoneName() {
 	}
 
 	// 3) ToRectangle → image.Rectangle
-	rect := bbox.ToRectangle() // здесь используется ваш метод
+	rect := bbox.ToRectangle() // here we use your method
 
-	// 4) Преобразуем в наш Region
+	// 4) Convert to our Region
 	region := Region{
 		X0: rect.Min.X,
 		Y0: rect.Min.Y,
@@ -226,7 +226,7 @@ func callExampleOCRByZoneName() {
 		Y1: rect.Max.Y,
 	}
 
-	// 5) Формируем и шлём POST /ocr
+	// 5) Form and send POST /ocr
 	payload := struct {
 		DeviceID  string   `json:"device_id,omitempty"`
 		DebugName string   `json:"debug_name,omitempty"`
@@ -256,7 +256,7 @@ func callExampleOCRByZoneName() {
 		return
 	}
 
-	// 6) Декодируем и выводим
+	// 6) Decode and output
 	var zones []OCRZone
 	if err := json.NewDecoder(resp.Body).Decode(&zones); err != nil {
 		fmt.Println("ERROR decode JSON:", err)
