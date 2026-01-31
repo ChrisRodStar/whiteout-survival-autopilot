@@ -6,7 +6,7 @@ import (
 	"github.com/google/cel-go/common/types/ref"
 )
 
-// isMaxBinding — возвращает true, если первый аргумент больше всех остальных.
+// isMaxBinding — returns true if the first argument is greater than all others.
 func isMaxBinding(args ...ref.Val) ref.Val {
 	if len(args) < 2 {
 		return types.Bool(false)
@@ -24,7 +24,7 @@ func isMaxBinding(args ...ref.Val) ref.Val {
 	return types.Bool(true)
 }
 
-// IsMaxLib — EnvOption, регистрирующий функцию isMax для CEL.
+// IsMaxLib — EnvOption that registers the isMax function for CEL.
 var IsMaxLib = cel.Function(
 	"isMax",
 	cel.Overload(

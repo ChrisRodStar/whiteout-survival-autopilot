@@ -21,14 +21,14 @@ type FindImageResponse struct {
 	Boxes [][][]int `json:"boxes"`
 }
 
-// ToRects конвертирует каждую полигональную рамку в прямоугольник image.Rectangle.
+// ToRects converts each polygonal box to an image.Rectangle.
 func (r *FindImageResponse) ToRects() []image.Rectangle {
 	rects := make([]image.Rectangle, 0, len(r.Boxes))
 	for _, poly := range r.Boxes {
 		if len(poly) == 0 {
 			continue
 		}
-		// инициализируем габариты первыми точками
+		// initialize bounds with first points
 		minX, minY := poly[0][0], poly[0][1]
 		maxX, maxY := minX, minY
 		for _, pt := range poly {
@@ -84,7 +84,7 @@ func (c *Client) FetchOCR(debugName string, regions []Region) (domain.OCRResults
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	// 3) Выполняем через c.HTTP — с автоматическими retry и таймаутом
+	// 3) Execute through c.HTTP — with automatic retry and timeout
 	resp, err := c.HTTP.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("http post /ocr: %w", err)
@@ -111,7 +111,7 @@ func (c *Client) FetchOCR(debugName string, regions []Region) (domain.OCRResults
 	return results, nil
 }
 
-// WaitForTextRequest — payload для /wait_for_text.
+// WaitForTextRequest — payload for /wait_for_text.
 type WaitForTextRequest struct {
 	StopWords []string `json:"stop_words"`
 	DeviceID  string   `json:"device_id,omitempty"`
@@ -130,7 +130,7 @@ func (c *Client) WaitForText(stopWords []string, timeout, interval time.Duration
 		"interval", interval,
 	)
 
-	// 1) Подготовка тела запроса
+	// 1) Prepare request body
 	reqBody := WaitForTextRequest{
 		StopWords: stopWords,
 		DeviceID:  c.DeviceID,
@@ -142,7 +142,7 @@ func (c *Client) WaitForText(stopWords []string, timeout, interval time.Duration
 		return nil, fmt.Errorf("marshal /wait_for_text payload: %w", err)
 	}
 
-	// 2) Формируем URL с debug_name
+	// 2) Build URL with debug_name
 	u, err := url.Parse(c.ServiceURL + "/wait_for_text")
 	if err != nil {
 		return nil, fmt.Errorf("parse wait_for_text URL: %w", err)
@@ -153,14 +153,14 @@ func (c *Client) WaitForText(stopWords []string, timeout, interval time.Duration
 		u.RawQuery = q.Encode()
 	}
 
-	// 3) Собираем HTTP-запрос
+	// 3) Build HTTP request
 	req, err := http.NewRequest("POST", u.String(), bytes.NewReader(bodyBytes))
 	if err != nil {
 		return nil, fmt.Errorf("new request /wait_for_text: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	// 4) Выполняем через c.HTTP (retry + timeout)
+	// 4) Execute through c.HTTP (retry + timeout)
 	resp, err := c.HTTP.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("http post /wait_for_text: %w", err)
@@ -177,7 +177,7 @@ func (c *Client) WaitForText(stopWords []string, timeout, interval time.Duration
 		return nil, fmt.Errorf("decode /wait_for_text json: %w", err)
 	}
 
-	// Преобразуем каждый OCRZone в OCRResult
+	// Convert each OCRZone to OCRResult
 	results := make(domain.OCRResults, len(zones))
 	for i, z := range zones {
 		results[i] = z.ToOCRResult()
@@ -204,7 +204,7 @@ func (c *Client) FindImage(imageName string, threshold float64, debugName string
 		"debug_name", debugName,
 	)
 
-	// 1) Подготовка запроса
+	// 1) Prepare request
 	reqBody := FindImageRequest{
 		ImageName: imageName,
 		DeviceID:  c.DeviceID,
@@ -216,7 +216,7 @@ func (c *Client) FindImage(imageName string, threshold float64, debugName string
 		return nil, fmt.Errorf("marshal find_image payload: %w", err)
 	}
 
-	// 2) Формируем HTTP-запрос
+	// 2) Build HTTP request
 	url := fmt.Sprintf("%s/find_image", c.ServiceURL)
 	req, err := http.NewRequest("POST", url, bytes.NewReader(bodyBytes))
 	if err != nil {
@@ -224,7 +224,7 @@ func (c *Client) FindImage(imageName string, threshold float64, debugName string
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	// 3) Выполняем через c.HTTP (retry + timeout)
+	// 3) Execute through c.HTTP (retry + timeout)
 	resp, err := c.HTTP.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("http post /find_image: %w", err)

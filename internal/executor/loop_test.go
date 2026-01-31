@@ -12,7 +12,7 @@ import (
 	"github.com/batazor/whiteout-survival-autopilot/internal/executor"
 )
 
-// mockEvaluator считает вызовы и возвращает true только два раза
+// mockEvaluator counts calls and returns true only twice
 type mockEvaluator struct {
 	counter int
 }

@@ -39,7 +39,7 @@ func (a *Analyzer) AnalyzeAndUpdateState(oldState *domain.Gamer, rules []domain.
 	newChar := newGamer
 	charPtr := &newChar
 
-	// ========== 1️⃣ Делаем единый full-screen OCR ==========
+	// ========== 1️⃣ Perform unified full-screen OCR ==========
 	regions := make([]ocrclient.Region, 0)
 	for _, rule := range rules {
 		region, ok := a.areas.Get(rule.Name)
@@ -56,7 +56,7 @@ func (a *Analyzer) AnalyzeAndUpdateState(oldState *domain.Gamer, rules []domain.
 		})
 	}
 
-	fullOCR, fullErr := a.ocrClient.FetchOCR("", regions) // debugName можно опустить
+	fullOCR, fullErr := a.ocrClient.FetchOCR("", regions) // debugName can be omitted
 	if fullErr != nil {
 		a.logger.Error("Full OCR failed", slog.Any("error", fullErr))
 		return nil, fullErr
@@ -92,7 +92,7 @@ func (a *Analyzer) AnalyzeAndUpdateState(oldState *domain.Gamer, rules []domain.
 				value = resp.Found
 
 			case "findIcon":
-				// вызываем OCR-сервис — на Python-стороне к rule.Name автоматически добавят ".png"
+				// call OCR service — on the Python side ".png" will be automatically added to rule.Name
 				resp, err := a.ocrClient.FindImage(rule.Name, float64(threshold), rule.Name)
 				if err != nil {
 					a.logger.Error("FindImage failed",
@@ -102,7 +102,7 @@ func (a *Analyzer) AnalyzeAndUpdateState(oldState *domain.Gamer, rules []domain.
 					return
 				}
 
-				// конвертируем полигоны в прямоугольники
+				// convert polygons to rectangles
 				rects := resp.ToRects()
 				matches := len(rects)
 				a.logger.Info("📦 Icon search result",
@@ -112,7 +112,7 @@ func (a *Analyzer) AnalyzeAndUpdateState(oldState *domain.Gamer, rules []domain.
 				value = resp.Found
 
 				if rule.SaveAsRegion && resp.Found && matches > 0 {
-					// берём лучший (первый) прямоугольник
+					// take the best (first) rectangle
 					newBbox := rects[0]
 					newRegion := config.Region{Zone: newBbox}
 					a.areas.AddTemporaryRegion(rule.Name, newRegion)
@@ -189,7 +189,7 @@ func (a *Analyzer) AnalyzeAndUpdateState(oldState *domain.Gamer, rules []domain.
 					)
 				}
 
-				// проверяем, есть ли хотя бы одна зона с нужным цветом и достаточной уверенностью
+				// check if there is at least one zone with the required color and sufficient confidence
 				found := false
 				for _, zr := range ocrZoneResults {
 					if zr.Score < rule.Threshold {
@@ -261,7 +261,7 @@ func (a *Analyzer) AnalyzeAndUpdateState(oldState *domain.Gamer, rules []domain.
 	wg.Wait()
 	newGamer = *charPtr
 
-	// Проверка pushUsecase'ов после установки значений
+	// Check pushUsecases after setting values
 	if queue == nil {
 		a.logger.Warn("❌ Queue is nil, skipping pushUsecase evaluation")
 		return &newGamer, nil
@@ -269,7 +269,7 @@ func (a *Analyzer) AnalyzeAndUpdateState(oldState *domain.Gamer, rules []domain.
 
 	for _, rule := range rules {
 		for _, push := range rule.PushUseCase {
-			// Проверяем что триггер выполняется
+			// Check if the trigger is satisfied
 			if push.Trigger != "" {
 				ok, err := a.triggerEvaluator.EvaluateTrigger(push.Trigger, charPtr)
 				if err != nil {
@@ -288,7 +288,7 @@ func (a *Analyzer) AnalyzeAndUpdateState(oldState *domain.Gamer, rules []domain.
 				}
 			}
 
-			// Если триггер выполнен, добавляем usecase в очередь
+			// If trigger is satisfied, add usecase to queue
 			for _, uc := range push.List {
 				ucOriginal := a.usecaseLoader.GetByName(uc.Name)
 
@@ -309,11 +309,11 @@ func (a *Analyzer) AnalyzeAndUpdateState(oldState *domain.Gamer, rules []domain.
 }
 
 // setFieldByPath sets a nested field by string path using reflection.
-// Если value == false и поле целевого типа int/uint/string, ставит zero-value.
+// If value == false and the target field type is int/uint/string, sets zero-value.
 func setFieldByPath(v reflect.Value, path []string, value any) error {
 	for i, part := range path {
 		if i == len(path)-1 {
-			// последний сегмент – непосредственно поле
+			// last segment – the actual field
 			field := v.FieldByNameFunc(func(name string) bool {
 				return strings.EqualFold(name, part)
 			})
@@ -322,7 +322,7 @@ func setFieldByPath(v reflect.Value, path []string, value any) error {
 			}
 
 			val := reflect.ValueOf(value)
-			// если value == false и поле int или string — ставим zero-value
+			// if value == false and field is int or string — set zero-value
 			if val.Kind() == reflect.Bool && !val.Bool() {
 				switch field.Type().Kind() {
 				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -336,7 +336,7 @@ func setFieldByPath(v reflect.Value, path []string, value any) error {
 					return nil
 				}
 			}
-			// обычная попытка конвертации
+			// normal conversion attempt
 			if val.Type().ConvertibleTo(field.Type()) {
 				field.Set(val.Convert(field.Type()))
 				return nil
@@ -345,7 +345,7 @@ func setFieldByPath(v reflect.Value, path []string, value any) error {
 				part, val.Type(), field.Type())
 		}
 
-		// идём по вложенным структурам / указателям
+		// traverse nested structures / pointers
 		v = v.FieldByNameFunc(func(name string) bool {
 			return strings.EqualFold(name, part)
 		})

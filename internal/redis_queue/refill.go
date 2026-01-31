@@ -21,13 +21,13 @@ func StartGlobalUsecaseRefiller(
 ) {
 	usecases, err := usecaseLoader.LoadAll(ctx)
 	if err != nil {
-		log.Error("❌ Не удалось загрузить usecases при старте", "err", err)
+		log.Error("❌ Failed to load usecases at startup", "err", err)
 		return
 	}
 
 	s, err := gocron.NewScheduler(gocron.WithLocation(time.UTC))
 	if err != nil {
-		log.Error("❌ Не удалось создать gocron scheduler", "err", err)
+		log.Error("❌ Failed to create gocron scheduler", "err", err)
 		return
 	}
 
@@ -36,7 +36,7 @@ func StartGlobalUsecaseRefiller(
 			continue
 		}
 
-		ucCopy := uc // замыкание копии usecase
+		ucCopy := uc // closure copy of usecase
 
 		task := func() {
 			allGamers := cfg.AllGamers()
@@ -45,7 +45,7 @@ func StartGlobalUsecaseRefiller(
 
 				shouldSkip, err := queue.ShouldSkip(ctx, gamer.ID, ucCopy.Name)
 				if err != nil {
-					log.Warn("⚠️ Ошибка проверки TTL", "botID", gamer.ID, "usecase", ucCopy.Name, "err", err)
+					log.Warn("⚠️ TTL check error", "botID", gamer.ID, "usecase", ucCopy.Name, "err", err)
 					continue
 				}
 				if shouldSkip {
@@ -53,9 +53,9 @@ func StartGlobalUsecaseRefiller(
 				}
 
 				if err := queue.Push(ctx, ucCopy); err != nil {
-					log.Error("❌ Не удалось добавить usecase", "usecase", ucCopy.Name, "botID", gamer.ID, "err", err)
+					log.Error("❌ Failed to add usecase", "usecase", ucCopy.Name, "botID", gamer.ID, "err", err)
 				} else {
-					log.Info("✅ Usecase добавлен", "usecase", ucCopy.Name, "botID", gamer.ID)
+					log.Info("✅ Usecase added", "usecase", ucCopy.Name, "botID", gamer.ID)
 				}
 			}
 		}
@@ -65,7 +65,7 @@ func StartGlobalUsecaseRefiller(
 			gocron.NewTask(task),
 		)
 		if err != nil {
-			log.Error("❌ Не удалось создать cron-задачу", "cron", uc.Cron, "usecase", uc.Name, "err", err)
+			log.Error("❌ Failed to create cron task", "cron", uc.Cron, "usecase", uc.Name, "err", err)
 		}
 	}
 

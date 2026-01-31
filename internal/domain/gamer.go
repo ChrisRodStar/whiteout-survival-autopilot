@@ -6,35 +6,35 @@ import (
 
 type Gamers []Gamer
 
-// Gamer описывает игрового персонажа со всеми характеристиками.
+// Gamer describes a game character with all characteristics.
 type Gamer struct {
-	ID       int    `yaml:"id"`       // Уникальный идентификатор персонажа (fid).
-	Nickname string `yaml:"nickname"` // Псевдоним персонажа.
-	State    int    `yaml:"state"`    // Государство персонажа.
-	Avatar   string `yaml:"avatar"`   // URL аватара персонажа.
-	Gems     int    `yaml:"gems"`     // Количество гемов (премиум-валюта).
-	Power    int    `yaml:"power"`    // Мощь персонажа.
+	ID       int    `yaml:"id"`       // Unique character identifier (fid).
+	Nickname string `yaml:"nickname"` // Character nickname.
+	State    int    `yaml:"state"`    // Character state.
+	Avatar   string `yaml:"avatar"`   // Character avatar URL.
+	Gems     int    `yaml:"gems"`     // Number of gems (premium currency).
+	Power    int    `yaml:"power"`    // Character power.
 
-	ScreenState ScreenState `yaml:"screenState"` // Состояние экрана (например, "main", "battle", "exploration").
+	ScreenState ScreenState `yaml:"screenState"` // Screen state (e.g., "main", "battle", "exploration").
 
-	VIP            VIP            `yaml:"vip"`            // VIP-статус персонажа.
-	Resources      Resources      `yaml:"resources"`      // Ресурсы персонажа.
-	Exploration    Exploration    `yaml:"exploration"`    // Исследование мира.
-	Heroes         heroes.Heroes  `yaml:"heroes"`         // Состояние героев.
-	Messages       MessagesState  `yaml:"messages"`       // Состояние сообщений.
-	Alliance       Alliance       `yaml:"alliance"`       // Данные об альянсе.
-	Buildings      Buildings      `yaml:"buildings"`      // Здания персонажа.
-	Researches     Researches     `yaml:"researches"`     // Уровни исследований.
-	Events         Events         `yaml:"events"`         // События персонажа.
-	Troops         Troops         `yaml:"troops"`         // Состояние войск.
-	Tech           Tech           `yaml:"tech"`           // Технологии персонажа.
-	Mail           Mail           `yaml:"mail"`           // Состояние почты персонажа.
-	Shop           Shop           `yaml:"shop"`           // Состояние магазина.
-	DailyMissions  DailyMissions  `yaml:"dailyMissions"`  // Состояние ежедневных миссий.
-	GrowthMissions GrowthMissions `yaml:"growthMissions"` // Состояние роста персонажа.
-	Chief          Chief          `yaml:"chief"`          // Данные о губернаторе
-	Arena          Arena          `yaml:"arena"`          // Данные арены
-	HealInjured    HealInjured    `yaml:"healInjured"`    // События по лечению раненых
+	VIP            VIP            `yaml:"vip"`            // Character VIP status.
+	Resources      Resources      `yaml:"resources"`      // Character resources.
+	Exploration    Exploration    `yaml:"exploration"`    // World exploration.
+	Heroes         heroes.Heroes  `yaml:"heroes"`         // Heroes state.
+	Messages       MessagesState  `yaml:"messages"`       // Messages state.
+	Alliance       Alliance       `yaml:"alliance"`       // Alliance data.
+	Buildings      Buildings      `yaml:"buildings"`      // Character buildings.
+	Researches     Researches     `yaml:"researches"`     // Research levels.
+	Events         Events         `yaml:"events"`         // Character events.
+	Troops         Troops         `yaml:"troops"`         // Troops state.
+	Tech           Tech           `yaml:"tech"`           // Character technologies.
+	Mail           Mail           `yaml:"mail"`           // Character mail state.
+	Shop           Shop           `yaml:"shop"`           // Shop state.
+	DailyMissions  DailyMissions  `yaml:"dailyMissions"`  // Daily missions state.
+	GrowthMissions GrowthMissions `yaml:"growthMissions"` // Character growth state.
+	Chief          Chief          `yaml:"chief"`          // Governor data
+	Arena          Arena          `yaml:"arena"`          // Arena data
+	HealInjured    HealInjured    `yaml:"healInjured"`    // Heal injured events
 }
 
 // Len returns the number of gamers.

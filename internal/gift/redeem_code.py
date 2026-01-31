@@ -42,7 +42,7 @@ if sess.post(f"{URL}/player", data=login, headers=HEAD, timeout=30
              ).json().get("msg") != "success":
     die("LOGIN")
 
-# 2-3) captcha + redeem  (до 3 попыток на случай 40101 / 40103) ──
+# 2-3) captcha + redeem  (up to 3 attempts in case of 40101 / 40103) ──
 maxTries = 3
 for attempt in range(1, maxTries + 1):
     ts = str(time.time_ns())
@@ -71,7 +71,7 @@ for attempt in range(1, maxTries + 1):
             print("CDK_EXPIRED");           sys.exit(0)
     if ec in (40101, 40103):            # CAPTCHA CHECK TOO FREQUENT / ERROR
         if attempt < maxTries:
-            time.sleep(1)               # маленькая пауза перед новой капчей
+            time.sleep(1)               # small pause before new captcha
             continue
-    # любые другие или лимит попыток
+    # any other errors or attempt limit reached
     die(f"REDEEM ec={ec} msg='{msg}'")

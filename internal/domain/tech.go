@@ -1,10 +1,10 @@
 package domain
 
 type Tech struct {
-	State TechState `yaml:"state"` // Состояние технологий.
+	State TechState `yaml:"state"` // Technology state.
 }
 
 type TechState struct {
-	IsAvailable bool   `yaml:"is_available"` // Доступность технологий.
-	TextStatus  string `yaml:"TextStatus"`   // Текстовый статус.
+	IsAvailable bool   `yaml:"is_available"` // Technology availability.
+	TextStatus  string `yaml:"TextStatus"`   // Text status.
 }

@@ -24,7 +24,7 @@ func init() {
 }
 
 func buildFSMGraph() map[string][]string {
-	// 🧼 Полный сброс, чтобы избежать остатков от других FSM
+	// 🧼 Complete reset to avoid remnants from other FSMs
 	fsmGraph := map[string][]string{}
 
 	for from, targets := range transitionPaths {
@@ -38,12 +38,12 @@ func buildFSMGraph() map[string][]string {
 
 type StateUpdateCallback interface{}
 
-// TransitionStep описывает один шаг перехода FSM между экранами.
+// TransitionStep describes one FSM transition step between screens.
 type TransitionStep struct {
-	Click   string        // Имя региона для клика (оставьте пустым, если не нужен)
-	Swipe   *Swipe        // Описание свайпа (nil, если свайп не требуется)
-	Wait    time.Duration // Время ожидания после шага
-	Trigger string        // Опциональный CEL-триггер для условия выполнения шага
+	Click   string        // Region name for click (leave empty if not needed)
+	Swipe   *Swipe        // Swipe description (nil if swipe not required)
+	Wait    time.Duration // Wait time after step
+	Trigger string        // Optional CEL trigger for step execution condition
 }
 
 // Swipe позволяет указывать свайпы двумя способами:
@@ -587,7 +587,7 @@ type GameFSM struct {
 	rulesCheckState  config.ScreenAnalyzeRules
 	OCRClient        *ocrclient.Client
 
-	// previousState хранит предыдущее состояние FSM
+	// previousState stores the previous FSM state
 	previousState string
 }
 
@@ -604,7 +604,7 @@ func NewGame(
 	viper.SetDefault("PATH_TO_FSM_STATE_RULES", "references/fsmState.yaml")
 	pathToFSMStateRules := viper.GetString("PATH_TO_FSM_STATE_RULES")
 
-	// ─── Инициализация правил проверки состояния ───────────────────────
+	// ─── Initialize state check rules ───────────────────────
 	rulesCheckState, err := config.LoadAnalyzeRules(pathToFSMStateRules)
 	if err != nil {
 		logger.Error("Failed to load analyze rules", slog.Any("error", err))
@@ -612,7 +612,7 @@ func NewGame(
 		panic("Failed to load analyze rules")
 	}
 
-	// Начинаем с главного экрана
+	// Start from main screen
 	if gamerState != nil {
 		gamerState.ScreenState.CurrentState = state.StateMainCity
 	}
@@ -710,9 +710,9 @@ func (g *GameFSM) ValidateTransitionActions() {
 	panic(errMsg)
 }
 
-// cost возвращает стоимость ребра между состояниями.
-// Если для перехода from -> to определён прямой переход, стоимость равна 1,
-// иначе – предполагается fallback с стоимостью 2.
+// cost returns the cost of an edge between states.
+// If a direct transition from -> to is defined, the cost is 1,
+// otherwise – a fallback with cost 2 is assumed.
 func cost(from, to string) int {
 	if _, ok := transitionPaths[from][to]; ok {
 		return 1
@@ -720,10 +720,10 @@ func cost(from, to string) int {
 	return 2
 }
 
-// FindPath ищет кратчайший путь (по суммарной стоимости ребер) от состояния from до to
-// с использованием алгоритма Дейкстры.
+// FindPath finds the shortest path (by total edge cost) from state 'from' to 'to'
+// using Dijkstra's algorithm.
 func (g *GameFSM) FindPath(from, to string) []string {
-	// Собираем все состояния: ключи графа и их соседи.
+	// Collect all states: graph keys and their neighbors.
 	nodes := make(map[string]bool)
 	for state, neighbors := range g.fsmGraph {
 		nodes[state] = true
@@ -740,7 +740,7 @@ func (g *GameFSM) FindPath(from, to string) []string {
 	}
 	dist[from] = 0
 
-	// Множество непосещённых вершин.
+	// Set of unvisited vertices.
 	unvisited := make(map[string]bool)
 	for node := range nodes {
 		unvisited[node] = true
@@ -756,10 +756,10 @@ func (g *GameFSM) FindPath(from, to string) []string {
 			}
 		}
 		if u == "" {
-			break // не осталось достижимых вершин
+			break // no reachable vertices left
 		}
 		if u == to {
-			break // достигли целевого состояния
+			break // reached target state
 		}
 		delete(unvisited, u)
 		for _, v := range g.fsmGraph[u] {
@@ -775,10 +775,10 @@ func (g *GameFSM) FindPath(from, to string) []string {
 	}
 
 	if dist[to] == inf {
-		return nil // путь не найден
+		return nil // path not found
 	}
 
-	// Восстанавливаем путь
+	// Reconstruct path
 	var path []string
 	for u := to; u != ""; u = prev[u] {
 		path = append([]string{u}, path...)
@@ -797,7 +797,7 @@ func (g *GameFSM) pathToSteps(path []string) []TransitionStep {
 		if s, ok := transitionPaths[from][to]; ok {
 			steps = append(steps, s...)
 		} else {
-			// Нет прямого перехода – выбрасываем ошибку
+			// No direct transition – throw error
 			panic(fmt.Sprintf("❌ FSM: direct transition from '%s' to '%s' not defined", from, to))
 		}
 	}

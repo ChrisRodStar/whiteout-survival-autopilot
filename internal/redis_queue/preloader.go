@@ -17,15 +17,15 @@ func PreloadQueues(ctx context.Context, rdb *redis.Client, profiles domain.Profi
 			queue := NewGamerQueue(rdb, gamer.ID)
 			key := queue.key()
 
-			// 💣 Полный reset
+			// 💣 Complete reset
 			if err := rdb.Del(ctx, key).Err(); err != nil {
-				fmt.Printf("❌ Не удалось очистить очередь для gamer:%d: %v\n", gamer.ID, err)
+				fmt.Printf("❌ Failed to clear queue for gamer:%d: %v\n", gamer.ID, err)
 				continue
 			}
 
 			usecases, err := usecaseLoader.LoadAll(ctx)
 			if err != nil {
-				fmt.Printf("❌ Ошибка загрузки usecase'ов для gamer:%d: %v\n", gamer.ID, err)
+				fmt.Printf("❌ Error loading usecases for gamer:%d: %v\n", gamer.ID, err)
 				continue
 			}
 
@@ -37,9 +37,9 @@ func PreloadQueues(ctx context.Context, rdb *redis.Client, profiles domain.Profi
 					Score:  score,
 					Member: string(data),
 				}).Err(); err != nil {
-					fmt.Printf("❌ Не удалось добавить %s в gamer:%d: %v\n", uc.Name, gamer.ID, err)
+					fmt.Printf("❌ Failed to add %s to gamer:%d: %v\n", uc.Name, gamer.ID, err)
 				} else {
-					fmt.Printf("📥 Добавлен usecase %s в gamer:%d\n", uc.Name, gamer.ID)
+					fmt.Printf("📥 Added usecase %s to gamer:%d\n", uc.Name, gamer.ID)
 				}
 			}
 		}

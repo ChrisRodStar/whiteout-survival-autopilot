@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// RetryTransport — обёртка над RoundTripper с автоматическими retry.
+// RetryTransport — wrapper over RoundTripper with automatic retry.
 type RetryTransport struct {
 	Base     http.RoundTripper
 	Attempts uint
@@ -29,7 +29,7 @@ func (t *RetryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 				return err
 			}
 			if r.StatusCode >= 500 {
-				// серверная ошибка — закрываем тело и повторяем
+				// server error — close body and retry
 				r.Body.Close()
 				t.Logger.Warn("Server 5xx, retrying", "status", r.StatusCode)
 				return fmt.Errorf("server status %d", r.StatusCode)
@@ -44,7 +44,7 @@ func (t *RetryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return resp, err
 }
 
-// Client — HTTP-клиент для общения с OCR-сервисом.
+// Client — HTTP client for communicating with OCR service.
 type Client struct {
 	ServiceURL string
 	DeviceID   string
@@ -52,9 +52,9 @@ type Client struct {
 	HTTP       *http.Client
 }
 
-// NewClient создаёт OCR-клиент с retry-миддлварой.
-// Все запросы через c.HTTP будут автоматически
-// ретраиться 3 раза с задержкой 500ms.
+// NewClient creates an OCR client with retry middleware.
+// All requests through c.HTTP will be automatically
+// retried 3 times with a 500ms delay.
 func NewClient(deviceID string, logger *slog.Logger) *Client {
 	viper.SetDefault("OCR_SERVICE_URL", "http://localhost:8000")
 

@@ -1,38 +1,38 @@
 package heroes
 
-// Heroes содержит информацию о состоянии всех героев.
+// Heroes contains information about the state of all heroes.
 type Heroes struct {
-	IsNotify bool `json:"isNotify"` // Признак необходимости уведомления о состоянии героев.
+	IsNotify bool `json:"isNotify"` // Flag indicating the need to notify about hero state.
 
 	List map[string]Hero
 }
 
-// Hero представляет одного героя с его характеристиками и состоянием.
+// Hero represents a single hero with their characteristics and state.
 type Hero struct {
 	Class      string            `json:"class"`           // Infantry, Lancer, Marksman
-	Generation int               `json:"generation"`      // Поколение героя
-	Roles      []string          `json:"roles"`           // Роли (rally_leader, resource_gathering, и т.д.)
-	Skills     HeroSkills        `json:"skills"`          // Навыки героя
-	Buffs      map[string]string `json:"buffs,omitempty"` // Баффы, ключ-значение
-	Notes      string            `json:"notes,omitempty"` // Примечания по использованию героя
+	Generation int               `json:"generation"`      // Hero generation
+	Roles      []string          `json:"roles"`           // Roles (rally_leader, resource_gathering, etc.)
+	Skills     HeroSkills        `json:"skills"`          // Hero skills
+	Buffs      map[string]string `json:"buffs,omitempty"` // Buffs, key-value
+	Notes      string            `json:"notes,omitempty"` // Notes on hero usage
 
-	State State `json:"state,omitempty"` // Текущее состояние героя у пользователя
+	State State `json:"state,omitempty"` // Current hero state for the user
 }
 
-// HeroSkills содержит группы навыков (пока — только expedition).
+// HeroSkills contains skill groups (currently — only expedition).
 type HeroSkills struct {
-	Expedition map[string]HeroSkill `json:"expedition"` // one, two, three и т.д.
+	Expedition map[string]HeroSkill `json:"expedition"` // one, two, three, etc.
 }
 
-// HeroSkill представляет конкретный навык.
+// HeroSkill represents a specific skill.
 type HeroSkill struct {
-	Name     string `json:"name"`     // Название навыка
-	Priority int    `json:"priority"` // Приоритет навыка (чем выше — тем важнее)
+	Name     string `json:"name"`     // Skill name
+	Priority int    `json:"priority"` // Skill priority (higher — more important)
 }
 
-// State описывает текущий статус героя у пользователя.
+// State describes the current hero status for the user.
 type State struct {
-	Level         int  `json:"level"`           // Уровень прокачки
-	IsAvailable   bool `json:"is_available"`    // Доступен ли герой пользователю
-	IsCampTrainer bool `json:"is_camp_trainer"` // Является ли герой тренером лагеря
+	Level         int  `json:"level"`           // Upgrade level
+	IsAvailable   bool `json:"is_available"`    // Whether the hero is available to the user
+	IsCampTrainer bool `json:"is_camp_trainer"` // Whether the hero is a camp trainer
 }

@@ -1,13 +1,13 @@
 package domain
 
 type HealInjured struct {
-	State HealInjuredState `yaml:"state"` // Состояние лечения раненых
+	State HealInjuredState `yaml:"state"` // Heal injured state
 }
 
 type HealInjuredState struct {
-	IsAvailable bool   `yaml:"isAvailable"` // Признак доступности лечения раненых (по иконке)
-	IsNext      string `yaml:"isNext"`      // Признак доступности лечения раненых (по тексту)
+	IsAvailable bool   `yaml:"isAvailable"` // Flag indicating heal injured availability (by icon)
+	IsNext      string `yaml:"isNext"`      // Flag indicating heal injured availability (by text)
 
-	IsReplenishAll bool   `yaml:"isReplenishAll"` // Признак доступности лечения всех раненых
-	StatusHeal     string `yaml:"statusHeal"`     // Статус лечения раненых
+	IsReplenishAll bool   `yaml:"isReplenishAll"` // Flag indicating availability to heal all injured
+	StatusHeal     string `yaml:"statusHeal"`     // Heal injured status
 }

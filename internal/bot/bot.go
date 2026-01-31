@@ -56,88 +56,88 @@ func NewBot(dev *device.Device, gamer *domain.Gamer, email string, rdb *redis.Cl
 }
 
 func (b *Bot) Play(ctx context.Context) {
-	// 📸 Анализ состояния на главном экране
+	// 📸 Analyze state on the main screen
 	b.updateStateFromScreen(ctx, "main_city", "out/bot_"+b.Gamer.Nickname+"_start_main_city.png")
 
 	for {
 		select {
 		case <-ctx.Done():
-			b.logger.Warn("🛑 Контекст отменён — завершаю работу бота")
+			b.logger.Warn("🛑 Context cancelled — stopping bot")
 			return
 		default:
 		}
 
-		// получаем use‑case из очереди
+		// get use-case from queue
 		uc, err := b.Queue.PopBest(ctx, b.Gamer.ScreenState.CurrentState)
 		if err != nil {
-			b.logger.Warn("⚠️ Не удалось получить use‑case", "err", err)
+			b.logger.Warn("⚠️ Failed to get use-case", "err", err)
 			continue
 		}
 
-		// очередь пуста → выходим, чтобы переключиться на другого игрока
+		// queue is empty → exit to switch to another player
 		if uc == nil {
-			b.logger.Info("📭 Очередь пуста — завершаю работу бота")
+			b.logger.Info("📭 Queue is empty — stopping bot")
 			break
 		}
 
-		// 🕒 Проверка TTL (пропускаем usecase, если не истёк)
+		// 🕒 Check TTL (skip usecase if not expired)
 		shouldSkip, err := b.Queue.ShouldSkip(ctx, b.Gamer.ID, uc.Name)
 		if err != nil {
-			b.logger.Error("❌ Не удалось проверить TTL usecase", slog.Any("err", err))
+			b.logger.Error("❌ Failed to check usecase TTL", slog.Any("err", err))
 			continue
 		}
 		if shouldSkip {
-			b.logger.Info("⏭️ UseCase пропущен по TTL", slog.String("name", uc.Name))
+			b.logger.Info("⏭️ UseCase skipped by TTL", slog.String("name", uc.Name))
 			continue
 		}
 
-		b.logger.Info("🚀 Выполняю use‑case", "name", uc.Name, "priority", uc.Priority)
+		b.logger.Info("🚀 Executing use-case", "name", uc.Name, "priority", uc.Priority)
 
-		// переходим на стартовый экран юзкейса
+		// switch to the usecase start screen
 		switchedScreen := false
 		if b.Gamer.ScreenState.CurrentState != uc.Node {
-			b.logger.Info("🔁 Переключаюсь на экран usecase", slog.String("name", uc.Name), slog.String("screen", uc.Node))
+			b.logger.Info("🔁 Switching to usecase screen", slog.String("name", uc.Name), slog.String("screen", uc.Node))
 			errForceTo := b.Device.FSM.ForceTo(uc.Node, b.updateStateFromScreen)
 			if errForceTo != nil {
 				if errors.Is(errForceTo, fsm.EventNotActive) {
-					b.logger.Info("⏭️ UseCase пропущен, так как событие не активно", slog.String("name", uc.Name))
+					b.logger.Info("⏭️ UseCase skipped because event is not active", slog.String("name", uc.Name))
 
-					// Устанавливает TTL для usecase в очереди
+					// Set TTL for usecase in queue
 					errSetLastExecuted := b.Queue.SetLastExecuted(ctx, b.Gamer.ID, uc.Name, uc.TTL)
 					if errSetLastExecuted != nil {
-						b.logger.Error("❌ Не удалось установить TTL usecase", slog.Any("err", err))
+						b.logger.Error("❌ Failed to set usecase TTL", slog.Any("err", err))
 					}
 
 					continue
 				}
 
-				b.logger.Error("❌ Не удалось переключиться на экран usecase", slog.Any("err", errForceTo))
+				b.logger.Error("❌ Failed to switch to usecase screen", slog.Any("err", errForceTo))
 			} else {
 				switchedScreen = true
 			}
 		} else {
-			b.logger.Info("🔁 Находится на экране usecase", slog.String("name", uc.Name), slog.String("screen", uc.Node))
+			b.logger.Info("🔁 Already on usecase screen", slog.String("name", uc.Name), slog.String("screen", uc.Node))
 		}
 
-		// Вызываем updateStateFromScreen только если FSM не делал этого в ForceTo, или если не было перехода
+		// Call updateStateFromScreen only if FSM didn't do it in ForceTo, or if there was no transition
 		if !switchedScreen {
 			b.updateStateFromScreen(ctx, uc.Node, "out/bot_"+b.Gamer.Nickname+"_before_trigger.png")
 		}
 
 		b.executor.ExecuteUseCase(ctx, uc, b.Gamer, b.Queue)
 
-		// Время для отрисовки экрана
+		// Time for screen rendering
 		time.Sleep(1 * time.Second)
 	}
 
-	// Время для отрисовки экрана
+	// Time for screen rendering
 	time.Sleep(2 * time.Second)
 
-	// 🔁 Возвращаемся в главный экран
+	// 🔁 Return to main screen
 	b.Device.FSM.ForceTo(state.StateMainCity, nil)
 
-	// Время для отрисовки экрана
+	// Time for screen rendering
 	time.Sleep(2 * time.Second)
 
-	b.logger.Info("⏭️ Очередь завершена. Готов к переключению.")
+	b.logger.Info("⏭️ Queue completed. Ready to switch.")
 }

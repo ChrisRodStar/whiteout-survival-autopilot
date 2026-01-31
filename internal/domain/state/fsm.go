@@ -12,14 +12,14 @@ const (
 	StateSettings        = "settings"
 	StateDawnMarket      = "dawn_market"
 
-	// Питомцы
+	// Pets
 	StatePets = "pets"
 
-	// Исследование
+	// Exploration
 	StateExploration       = "exploration"
 	StateExplorationBattle = "exploration_battle"
 
-	// Смена аккаунта
+	// Account switching
 	StateChiefProfile                           = "chief_profile"
 	StateChiefCharacters                        = "chief_characters"
 	StateChiefProfileSetting                    = "chief_profile_setting"
@@ -34,12 +34,12 @@ const (
 	StateAllianceWarSolo          = "alliance_war_solo"
 	StateAllianceWarEvents        = "alliance_war_events"
 
-	// Глобальная карта
+	// Global map
 	StateWorld          = "world"
 	StateWorldSearch    = "world_search_resources"
 	StateWorldGlobalMap = "world_global_map"
 
-	// Сообщения
+	// Messages
 	StateMail         = "mail"
 	StateMailWars     = "mail_wars"
 	StateMailAlliance = "mail_alliance"
@@ -51,29 +51,29 @@ const (
 	StateVIP    = "vip"
 	StateVIPAdd = "vip_add"
 
-	// Губернатор
+	// Governor
 	StateChiefOrders = "chief_orders"
 
-	// Ежедневные задания
+	// Daily missions
 	StateDailyMissions = "daily_missions"
-	// Миссии роста
+	// Growth missions
 	StateGrowthMissions = "growth_missions"
 )
 
 const (
-	// Альянс
+	// Alliance
 	StateAllianceManage    = "alliance_manage"
 	StateAllianceTech      = "alliance_tech"
 	StateAllianceSettings  = "alliance_settings"
 	StateAllianceRanking   = "alliance_ranking"
 	StateAllianceTerritory = "alliance_territory"
 
-	// Альянс - сундуки
+	// Alliance - chests
 	StateAllianceChests    = "alliance_chests"
 	StateAllianceChestLoot = "alliance_chest_loot"
 	StateAllianceChestGift = "alliance_chest_gift"
 
-	// Триумф
+	// Triumph
 	StateAllianceActivityTriumph = "alliance_activity_triumph"
 )
 
@@ -95,7 +95,7 @@ const (
 )
 
 const (
-	// Главное меню
+	// Main menu
 	StateMainMenuCity         = "main_menu_city"
 	StateMainMenuWilderness   = "main_menu_wilderness"
 	StateMainMenuBuilding1    = "main_menu_building_1"
@@ -104,7 +104,7 @@ const (
 )
 
 const (
-	// Рюкзак
+	// Backpack
 	StateBackpack          = "backpack"
 	StateBackpackResources = "backpack_resources"
 	StateBackpackSpeedups  = "backpack_speedups"
@@ -114,7 +114,7 @@ const (
 )
 
 const (
-	// Чат
+	// Chat
 	StateChat         = "chat"
 	StateChatAlliance = "chat_alliance"
 	StateChatWorld    = "chat_world"
@@ -122,12 +122,12 @@ const (
 )
 
 const (
-	// Герои
+	// Heroes
 	StateHeroes = "heroes"
 )
 
 const (
-	// События
+	// Events
 	StateEvents = "events"
 )
 
@@ -137,7 +137,7 @@ const (
 )
 
 const (
-	// Разведка
+	// Intelligence
 	StateIntel = "intel"
 )
 
@@ -154,12 +154,12 @@ const (
 )
 
 const (
-	// Лечение
+	// Healing
 	StateHealInjured = "heal_injured"
 )
 
 const (
-	// Лабиринт
+	// Labyrinth
 	StateLabyrinth      = "labyrinth"
 	StateCaveOfMonsters = "cave_of_monsters"
 )

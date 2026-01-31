@@ -10,14 +10,14 @@ import (
 	"github.com/batazor/whiteout-survival-autopilot/internal/vision"
 )
 
-// ExpectState выполняет проверку текущего состояния экрана.
-// Если заголовок соответствует известному экрану, но стейт не совпадает — возвращает тот, что ожидается.
+// ExpectState checks the current screen state.
+// If the title matches a known screen but the state doesn't match — returns the expected one.
 func (g *GameFSM) ExpectState(want string) (string, error) {
 	gamerState, err := g.analyzer.AnalyzeAndUpdateState(
 		g.gamerState, g.rulesCheckState["default"], nil,
 	)
 	if err != nil {
-		g.logger.Error("❌ Не удалось проанализировать экран",
+		g.logger.Error("❌ Failed to analyze screen",
 			slog.String("action", "expect_state"),
 			slog.String("state", want),
 			slog.Any("error", err),
@@ -28,94 +28,94 @@ func (g *GameFSM) ExpectState(want string) (string, error) {
 	ocrTitle := gamerState.ScreenState.TitleFact
 	ocrFamily := gamerState.ScreenState.IsMainCity
 
-	g.logger.Debug("FSM: анализ состояния",
+	g.logger.Debug("FSM: state analysis",
 		slog.String("ocr_title", ocrTitle),
 		slog.String("ocr_family", ocrFamily),
 		slog.String("want", want),
 	)
 
-	// 0. Если семейство определено — используем только его группу
+	// 0. If family is defined — use only its group
 	switch {
 	case vision.FuzzySubstringMatch(ocrFamily, "world", 1):
-		g.logger.Debug("FSM: Семейство определено как ГОРОД (по ссылке на мир)",
+		g.logger.Debug("FSM: Family defined as CITY (by world reference)",
 			slog.String("ocr_family", ocrFamily),
 			slog.String("want", want),
 		)
 		groupStates, ok := config.TitleToState["MainCity"]
-		g.logger.Debug("FSM: Группа MainCity", slog.Any("groupStates", groupStates), slog.Bool("found", ok))
+		g.logger.Debug("FSM: Group MainCity", slog.Any("groupStates", groupStates), slog.Bool("found", ok))
 		if ok && lo.Contains(groupStates, want) {
-			g.logger.Info("FSM: want найден в группе MainCity", slog.String("state", want))
+			g.logger.Info("FSM: want found in MainCity group", slog.String("state", want))
 			return want, nil
 		}
-		g.logger.Warn("FSM: want не найден в группе MainCity, возвращаем первый элемент группы", slog.String("state", groupStates[0]))
+		g.logger.Warn("FSM: want not found in MainCity group, returning first element of group", slog.String("state", groupStates[0]))
 		return groupStates[0], nil
 	case vision.FuzzySubstringMatch(ocrFamily, "city", 1):
-		g.logger.Debug("FSM: Семейство определено как МИР (по ссылке на город)",
+		g.logger.Debug("FSM: Family defined as WORLD (by city reference)",
 			slog.String("ocr_family", ocrFamily),
 			slog.String("want", want),
 		)
 		groupStates, ok := config.TitleToState["World"]
-		g.logger.Debug("FSM: Группа World", slog.Any("groupStates", groupStates), slog.Bool("found", ok))
+		g.logger.Debug("FSM: Group World", slog.Any("groupStates", groupStates), slog.Bool("found", ok))
 		if ok && lo.Contains(groupStates, want) {
-			g.logger.Info("FSM: want найден в группе World", slog.String("state", want))
+			g.logger.Info("FSM: want found in World group", slog.String("state", want))
 			return want, nil
 		}
-		g.logger.Warn("FSM: want не найден в группе World, возвращаем первый элемент группы", slog.String("state", groupStates[0]))
+		g.logger.Warn("FSM: want not found in World group, returning first element of group", slog.String("state", groupStates[0]))
 		return groupStates[0], nil
 	}
 
-	// 1. Находим группу стейтов по заголовку (старый путь)
+	// 1. Find state group by title (old path)
 	groupStates, ok := getMatchedState(ocrTitle, 0)
-	g.logger.Debug("FSM: Результат getMatchedState по ocrTitle",
+	g.logger.Debug("FSM: getMatchedState result by ocrTitle",
 		slog.String("ocr_title", ocrTitle),
 		slog.Any("groupStates", groupStates),
 		slog.Bool("found", ok),
 	)
 	if !ok {
-		g.logger.Warn("FSM: Не удалось сопоставить заголовок ни с одной группой стейтов",
+		g.logger.Warn("FSM: Failed to match title with any state group",
 			slog.String("ocr_title", ocrTitle),
 			slog.String("expected_state", want),
 		)
 		return want, nil
 	}
 
-	// 2. Ограничиваем группу по семейству (если можем)
+	// 2. Limit group by family (if possible)
 	var filteredGroup []string
 	switch {
 	case vision.FuzzySubstringMatch(ocrFamily, "world", 1):
 		filteredGroup = lo.Filter(groupStates, func(s string, _ int) bool {
 			return s == state.StateMainCity
 		})
-		g.logger.Debug("FSM: Ограничение по семейству ГОРОД (MainCity)",
+		g.logger.Debug("FSM: Limiting by CITY family (MainCity)",
 			slog.Any("filteredGroup", filteredGroup),
 		)
 	case vision.FuzzySubstringMatch(ocrFamily, "city", 1):
 		filteredGroup = lo.Filter(groupStates, func(s string, _ int) bool {
 			return s == state.StateWorld
 		})
-		g.logger.Debug("FSM: Ограничение по семейству МИР (World)",
+		g.logger.Debug("FSM: Limiting by WORLD family (World)",
 			slog.Any("filteredGroup", filteredGroup),
 		)
 	default:
 		filteredGroup = groupStates
-		g.logger.Debug("FSM: Семейство не определено — используем всю группу",
+		g.logger.Debug("FSM: Family not defined — using entire group",
 			slog.Any("filteredGroup", filteredGroup),
 		)
 	}
 
 	if lo.Contains(filteredGroup, want) {
-		g.logger.Info("FSM: want найден в фильтрованной группе", slog.String("state", want))
+		g.logger.Info("FSM: want found in filtered group", slog.String("state", want))
 		return want, nil
 	}
 
 	if len(filteredGroup) > 0 {
-		g.logger.Warn("FSM: want не найден в фильтрованной группе, возвращаем первый элемент фильтрованной группы",
+		g.logger.Warn("FSM: want not found in filtered group, returning first element of filtered group",
 			slog.String("state", filteredGroup[0]),
 		)
 		return filteredGroup[0], nil
 	}
 
-	g.logger.Warn("FSM: want не найден в фильтрованной группе и filteredGroup пуст — возвращаем want",
+	g.logger.Warn("FSM: want not found in filtered group and filteredGroup is empty — returning want",
 		slog.String("state", want),
 	)
 

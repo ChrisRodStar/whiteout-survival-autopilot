@@ -10,7 +10,7 @@ import (
 )
 
 func (d *Device) handleEntryScreens(ctx context.Context) error {
-	d.Logger.Info("🔎 Ждём экранов входа и поп-апов…")
+	d.Logger.Info("🔎 Waiting for entry screens and pop-ups…")
 
 	keywords := []string{
 		"Welcome", "Alliance", "natalia", "Exploration", "Hero Gear",
@@ -19,7 +19,7 @@ func (d *Device) handleEntryScreens(ctx context.Context) error {
 		"Brothers in Arms", "Event Coming Soon", "Dawn Pack",
 		"Unyielding Dawn", "Overview", "Confirm",
 	}
-	// Приводим все ключи к нижнему регистру
+	// Convert all keys to lowercase
 	lowerKW := make([]string, len(keywords))
 	for i, kw := range keywords {
 		lowerKW[i] = strings.ToLower(kw)
@@ -27,9 +27,9 @@ func (d *Device) handleEntryScreens(ctx context.Context) error {
 
 	start := time.Now()
 	for {
-		// Проверяем общий таймаут 30 секунд
+		// Check overall timeout of 30 seconds
 		if time.Since(start) > 30*time.Second {
-			d.Logger.Info("⏱️ 30s истекли, выходим без кликов")
+			d.Logger.Info("⏱️ 30s elapsed, exiting without clicks")
 			return nil
 		}
 
@@ -48,14 +48,14 @@ func (d *Device) handleEntryScreens(ctx context.Context) error {
 			continue
 		}
 
-		// 1) Ищем Confirm
+		// 1) Look for Confirm
 		for _, z := range zones {
 			txt := strings.ToLower(strings.TrimSpace(z.Text))
 			if vision.FuzzySubstringMatch(txt, "confirm", 1) &&
 				z.AvgColor == "white" && z.BgColor == "green" {
-				d.Logger.Info("🟢 Кликаем Confirm", slog.String("text", txt))
+				d.Logger.Info("🟢 Clicking Confirm", slog.String("text", txt))
 				if err := d.ADB.ClickRegion("welcome_back_continue_button", d.AreaLookup); err != nil {
-					d.Logger.Error("❌ Ошибка клика Confirm", slog.Any("err", err))
+					d.Logger.Error("❌ Error clicking Confirm", slog.Any("err", err))
 					return err
 				}
 				time.Sleep(time.Second)
@@ -63,7 +63,7 @@ func (d *Device) handleEntryScreens(ctx context.Context) error {
 			}
 		}
 
-		// 2) Ищем первый поп-ап
+		// 2) Look for first pop-up
 		found := false
 		for _, z := range zones {
 			txt := strings.ToLower(strings.TrimSpace(z.Text))
@@ -72,9 +72,9 @@ func (d *Device) handleEntryScreens(ctx context.Context) error {
 					continue
 				}
 				if vision.FuzzySubstringMatch(txt, target, 1) {
-					d.Logger.Info("🌀 Закрываем поп-ап", slog.String("popup", txt))
+					d.Logger.Info("🌀 Closing pop-up", slog.String("popup", txt))
 					if err := d.ADB.ClickRegion("ad_banner_close", d.AreaLookup); err != nil {
-						d.Logger.Error("❌ Ошибка клика закрытия поп-апа", slog.Any("err", err))
+						d.Logger.Error("❌ Error clicking pop-up close", slog.Any("err", err))
 						return err
 					}
 					time.Sleep(300 * time.Millisecond)
@@ -86,6 +86,6 @@ func (d *Device) handleEntryScreens(ctx context.Context) error {
 				break
 			}
 		}
-		// Если ни Confirm, ни поп-ап не сработали — ждём дальше
+		// If neither Confirm nor pop-up triggered — keep waiting
 	}
 }

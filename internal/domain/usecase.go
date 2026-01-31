@@ -5,79 +5,79 @@ import (
 	"time"
 )
 
-// UseCase представляет сценарий, описанный в YAML-файле.
+// UseCase represents a scenario described in a YAML file.
 type UseCase struct {
-	Name     string        `yaml:"name"`     // Название сценария
-	Priority int           `yaml:"priority"` // Приоритет сценария (от 0 до 100)
-	Node     string        `yaml:"node"`     // Начальный экран/состояние, с которого начинается usecase
-	Trigger  string        `yaml:"trigger"`  // CEL-выражение, которое определяет, запускать ли usecase
-	Steps    Steps         `yaml:"steps"`    // Последовательность шагов
-	TTL      time.Duration `yaml:"ttl"`      // Время жизни usecase (например, "24h")
-	Cron     string        `yaml:"cron"`     // Cron-выражение для периодического запуска usecase (например, "0 0 * * *")
+	Name     string        `yaml:"name"`     // Scenario name
+	Priority int           `yaml:"priority"` // Scenario priority (from 0 to 100)
+	Node     string        `yaml:"node"`     // Initial screen/state from which the usecase starts
+	Trigger  string        `yaml:"trigger"`  // CEL expression that determines whether to run the usecase
+	Steps    Steps         `yaml:"steps"`    // Sequence of steps
+	TTL      time.Duration `yaml:"ttl"`      // Usecase time-to-live (e.g., "24h")
+	Cron     string        `yaml:"cron"`     // Cron expression for periodic usecase execution (e.g., "0 0 * * *")
 
-	SourcePath string `json:"-"` // Путь к файлу, из которого был загружен usecase
+	SourcePath string `json:"-"` // Path to the file from which the usecase was loaded
 }
 
-// Steps — это просто срез Step
+// Steps is simply a slice of Step
 type Steps []Step
 
-// Step представляет отдельный шаг в usecase.
-// Он может быть простым действием (click/wait), условным (if), циклическим (loop),
-// включать анализ скриншота (analyze), или управлять TTL.
+// Step represents an individual step in a usecase.
+// It can be a simple action (click/wait), conditional (if), loop,
+// include screenshot analysis (analyze), or manage TTL.
 type Step struct {
-	// Общие действия
-	Click   string        `yaml:"click,omitempty"`   // Название региона, по которому нужно кликнуть
-	Longtap string        `yaml:"longtap,omitempty"` // Название региона, по которому нужно сделать долгий тап
-	Action  string        `yaml:"action,omitempty"`  // Специальное действие: "loop", "screenshot", и т.д.
-	Wait    time.Duration `yaml:"wait,omitempty"`    // Ожидание (например, "5s")
+	// Common actions
+	Click   string        `yaml:"click,omitempty"`   // Name of the region to click
+	Longtap string        `yaml:"longtap,omitempty"` // Name of the region to long tap
+	Action  string        `yaml:"action,omitempty"`  // Special action: "loop", "screenshot", etc.
+	Wait    time.Duration `yaml:"wait,omitempty"`    // Wait duration (e.g., "5s")
 
-	// Условный блок if { then {} else {} }
+	// Conditional block if { then {} else {} }
 	If *IfStep `yaml:"if,omitempty"`
 
-	// Цикл: используется вместе с action: loop
-	Trigger string `yaml:"trigger,omitempty"` // CEL-выражение, используемое для loop или if
-	Steps   Steps  `yaml:"steps,omitempty"`   // Вложенные шаги (например, внутри loop или if.then)
+	// Loop: used together with action: loop
+	Trigger string `yaml:"trigger,omitempty"` // CEL expression used for loop or if
+	Steps   Steps  `yaml:"steps,omitempty"`   // Nested steps (e.g., inside loop or if.then)
 
-	// Анализ скриншота: используется в паре с action: screenshot
-	Analyze []AnalyzeRule `yaml:"analyze,omitempty"` // Список правил анализа (например, text/icon/etc.)
+	// Screenshot analysis: used in pair with action: screenshot
+	Analyze []AnalyzeRule `yaml:"analyze,omitempty"` // List of analysis rules (e.g., text/icon/etc.)
 
-	// Управление TTL (например, чтобы отложить повторное выполнение usecase)
-	SetTTL      string `yaml:"setTTL,omitempty"`      // Продолжительность, например "24h"
-	UsecaseName string `yaml:"usecaseName,omitempty"` // Название usecase, к которому применяется TTL
+	// TTL management (e.g., to postpone repeated usecase execution)
+	SetTTL      string `yaml:"setTTL,omitempty"`      // Duration, e.g., "24h"
+	UsecaseName string `yaml:"usecaseName,omitempty"` // Name of the usecase to which TTL is applied
 
-	Set string      `yaml:"set,omitempty"` // ← сюда попадёт path вроде "exploration.state.battleStatus"
-	To  interface{} `yaml:"to,omitempty"`  // ← новое значение (в твоём случае — "")
+	Set string      `yaml:"set,omitempty"` // Path like "exploration.state.battleStatus"
+	To  interface{} `yaml:"to,omitempty"`  // New value (in your case — "")
 
-	PushUsecase []PushUsecase `yaml:"pushUsecase,omitempty"` // Список usecase, которые нужно запустить при выполнении этого шага
+	PushUsecase []PushUsecase `yaml:"pushUsecase,omitempty"` // List of usecases to run when executing this step
 }
 
-// IfStep описывает условную конструкцию вида if { then {} else {} }
+// IfStep describes a conditional construct of the form if { then {} else {} }
 type IfStep struct {
-	Trigger string `yaml:"trigger"`        // CEL-выражение, возвращающее bool
-	Then    []Step `yaml:"then"`           // Шаги, выполняемые, если trigger = true
-	Else    []Step `yaml:"else,omitempty"` // Шаги, если trigger = false (опционально)
+	Trigger string `yaml:"trigger"`        // CEL expression returning bool
+	Then    []Step `yaml:"then"`           // Steps executed if trigger = true
+	Else    []Step `yaml:"else,omitempty"` // Steps if trigger = false (optional)
 }
 
-// AnalyzeRule описывает правила для анализа региона экрана (screenshot).
+// AnalyzeRule describes rules for analyzing a screen region (screenshot).
 type AnalyzeRule struct {
-	Name              string        `yaml:"name"`                        // Название региона (и ключ для сохранения)
-	Action            string        `yaml:"action"`                      // Действие: "text", "exist", "color_check", "findIcon", "findText"
-	Text              string        `yaml:"text,omitempty"`              // Текст для поиска (например, "Battle")
-	Type              string        `yaml:"type,omitempty"`              // Тип результата (например, "integer", если action = text)
-	Threshold         float64       `yaml:"threshold,omitempty"`         // Уровень уверенности, по умолчанию 0.9
-	ExpectedColorBg   string        `yaml:"expectedColorBg,omitempty"`   // Ожидаемый цвет фона (например, "red")
-	ExpectedColorText string        `yaml:"expectedColorText,omitempty"` // Ожидаемый цвет текста (например, "green")
-	Log               string        `yaml:"log,omitempty"`               // Сообщение для логирования (опционально)
-	SaveAsRegion      bool          `yaml:"saveAsRegion,omitempty"`      // если true — сохранить зону как новую временную область с именем .Name
-	PushUseCase       []PushUsecase `yaml:"pushUsecase,omitempty"`       // Список usecase, которые нужно запустить при выполнении этого правила
+	Name              string        `yaml:"name"`                        // Region name (and key for saving)
+	Action            string        `yaml:"action"`                      // Action: "text", "exist", "color_check", "findIcon", "findText"
+	Text              string        `yaml:"text,omitempty"`              // Text to search for (e.g., "Battle")
+	Type              string        `yaml:"type,omitempty"`              // Result type (e.g., "integer" if action = text)
+	Threshold         float64       `yaml:"threshold,omitempty"`         // Confidence level, default 0.9
+	ExpectedColorBg   string        `yaml:"expectedColorBg,omitempty"`   // Expected background color (e.g., "red")
+	ExpectedColorText string        `yaml:"expectedColorText,omitempty"` // Expected text color (e.g., "green")
+	Log               string        `yaml:"log,omitempty"`               // Message for logging (optional)
+	SaveAsRegion      bool          `yaml:"saveAsRegion,omitempty"`      // If true — save the zone as a new temporary region with name .Name
+	PushUseCase       []PushUsecase `yaml:"pushUsecase,omitempty"`       // List of usecases to run when executing this rule
 }
 
 type PushUsecase struct {
-	Trigger string    `yaml:"trigger"` // CEL-выражение
-	List    []UseCase `yaml:"list"`    // Юзкейсы, которые нужно отправить в очередь
+	Trigger string    `yaml:"trigger"` // CEL expression
+	List    []UseCase `yaml:"list"`    // Usecases to send to the queue
 }
 
-// Validate проверяет допустимость значения action в правиле анализа.
+// Validate checks the validity of the action value in the analysis rule.
 func (r AnalyzeRule) Validate() error {
 	switch r.Action {
 	case "text", "exist", "color_check", "findIcon", "findText":

@@ -43,7 +43,7 @@ func NewController(logger *slog.Logger, name string) (*Controller, error) {
 		deviceID: name,
 	}
 
-	// Проверим доступность устройства
+	// Verify device availability
 	if err := verifyDeviceAvailable(name); err != nil {
 		panic(fmt.Sprintf("❌ %v", err))
 	}
@@ -194,7 +194,7 @@ func randInt(min, max int) int {
 // Swipe performs a swipe gesture from (x1, y1) to (x2, y2) in the given duration (ms),
 // adding slight randomness to simulate natural finger movement.
 func (a *Controller) Swipe(x1 int, y1 int, x2 int, y2 int, durationMs time.Duration) error {
-	// Добавим "дрожание" ±2 пикселя
+	// Add "jitter" ±2 pixels
 	jitter := func(v int) int {
 		return v + randInt(-2, 2)
 	}
@@ -247,12 +247,12 @@ func (a *Controller) LongTapRegion(name string, area *config.AreaLookup, duratio
 		slog.Duration("duration", durationMs),
 	)
 
-	// Просто используем Swipe с одинаковыми координатами и встроенным jitter
+	// Simply use Swipe with identical coordinates and built-in jitter
 	return a.Swipe(centerX, centerY, centerX, centerY, durationMs)
 }
 
-// GetScreenResolution вызывает команду ADB shell "wm size",
-// парсит результат и возвращает реальное разрешение экрана (width, height).
+// GetScreenResolution calls the ADB shell command "wm size",
+// parses the result and returns the actual screen resolution (width, height).
 func (a *Controller) GetScreenResolution() (int, int, error) {
 	cmd := exec.Command("adb", "-s", a.deviceID, "shell", "wm", "size")
 	out, err := cmd.Output()
@@ -261,15 +261,15 @@ func (a *Controller) GetScreenResolution() (int, int, error) {
 		return 0, 0, fmt.Errorf("failed to get screen resolution: %w", err)
 	}
 
-	// Ожидаемый формат вывода:
+	// Expected output format:
 	// Physical size: 1080x2400
-	// или
+	// or
 	// Override size: 1080x1920
-	// Нужно найти подстроку вида "<num>x<num>"
+	// Need to find a substring like "<num>x<num>"
 	str := string(out)
 	a.logger.Info("Raw wm size output", slog.String("output", str))
 
-	// Ищем что-то вроде "1080x2400"
+	// Looking for something like "1080x2400"
 	var w, h int
 	var matched bool
 
@@ -307,7 +307,7 @@ func (a *Controller) GetScreenResolution() (int, int, error) {
 	return w, h, nil
 }
 
-// clamp ограничивает значение в пределах [min, max]
+// clamp restricts the value within [min, max]
 func clamp(val, min, max int) int {
 	if val < min {
 		return min

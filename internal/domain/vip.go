@@ -5,18 +5,18 @@ import (
 )
 
 type VIP struct {
-	Level int           `yaml:"level"` // Уровень VIP-статуса (например, 1, 2, 3 и т.д.).
-	Time  time.Duration `yaml:"time"`  // Время, оставшееся до окончания VIP-статуса (например, 30 дней).
+	Level int           `yaml:"level"` // VIP status level (e.g., 1, 2, 3, etc.).
+	Time  time.Duration `yaml:"time"`  // Time remaining until VIP status expires (e.g., 30 days).
 
-	State VIPState `yaml:"state"` // Состояние VIP-статуса (например, активен, истекает и т.д.)
+	State VIPState `yaml:"state"` // VIP status state (e.g., active, expiring, etc.)
 }
 
 type VIPState struct {
-	IsNotify           bool `yaml:"isNotify"`           // Флаг, указывающий, есть ли события VIP-статуса.
-	IsActive           bool `yaml:"isActive"`           // Флаг, указывающий, активен ли VIP-статус.
-	IsAdd              bool `yaml:"isAdd"`              // Флаг, указывающий, можно ли добавить VIP-статус.
-	IsAward            bool `yaml:"isAward"`            // Флаг, указывающий, доступна ли награда за VIP-статус.
-	IsClaim            bool `yaml:"isClaim"`            // Флаг, указывающий, доступна ли награда за VIP-статус.
-	IsVIPAddAvailable  bool `yaml:"isVIPAddAvailable"`  // Флаг, указывающий, доступна ли возможность добавить VIP-статус.
-	IsVIPAddAvailableX bool `yaml:"isVIPAddAvailableX"` // Флаг, указывающий, доступна ли возможность добавить VIP-статус (дополнительный флаг).
+	IsNotify           bool `yaml:"isNotify"`           // Flag indicating whether there are VIP status events.
+	IsActive           bool `yaml:"isActive"`           // Flag indicating whether VIP status is active.
+	IsAdd              bool `yaml:"isAdd"`              // Flag indicating whether VIP status can be added.
+	IsAward            bool `yaml:"isAward"`            // Flag indicating whether VIP status reward is available.
+	IsClaim            bool `yaml:"isClaim"`            // Flag indicating whether VIP status reward is available.
+	IsVIPAddAvailable  bool `yaml:"isVIPAddAvailable"`  // Flag indicating whether the ability to add VIP status is available.
+	IsVIPAddAvailableX bool `yaml:"isVIPAddAvailableX"` // Flag indicating whether the ability to add VIP status is available (additional flag).
 }

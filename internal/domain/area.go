@@ -50,7 +50,7 @@ func NewBBoxFromRect(r image.Rectangle, originalW, originalH int) BBox {
 
 type BBoxes []BBox
 
-// GetBest возвращает BBox с максимальным Score.
+// GetBest returns the BBox with the maximum Score.
 func (bxs BBoxes) GetBest() (BBox, bool) {
 	if len(bxs) == 0 {
 		return BBox{}, false
@@ -64,7 +64,7 @@ func (bxs BBoxes) GetBest() (BBox, bool) {
 	return best, true
 }
 
-// GetTopY возвращает BBox с минимальной Y (расположен выше всех).
+// GetTopY returns the BBox with the minimum Y (positioned highest).
 func (bxs BBoxes) GetTopY() (BBox, bool) {
 	if len(bxs) == 0 {
 		return BBox{}, false

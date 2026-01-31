@@ -8,7 +8,7 @@ import (
 
 func TestCompareTextCEL(t *testing.T) {
 	eval := NewTriggerEvaluator()
-	gamer := &domain.Gamer{} // реальные данные здесь не нужны
+	gamer := &domain.Gamer{} // real data not needed here
 
 	tests := []struct {
 		expr string

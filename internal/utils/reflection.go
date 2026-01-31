@@ -28,12 +28,12 @@ func SetStateFieldByPath(target any, path string, value any) error {
 			field := t.Field(fi)
 			fieldVal := v.Field(fi)
 
-			// 👇 обработка YAML-тега
+			// 👇 handle YAML tag
 			yamlTag := field.Tag.Get("yaml")
 			yamlTag = strings.Split(yamlTag, ",")[0] // remove omitempty etc
 
 			if part == field.Name || (yamlTag != "" && yamlTag == part) {
-				// Инициализировать если nil
+				// Initialize if nil
 				if fieldVal.Kind() == reflect.Ptr && fieldVal.IsNil() {
 					newVal := reflect.New(fieldVal.Type().Elem())
 					fieldVal.Set(newVal)

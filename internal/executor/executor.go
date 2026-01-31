@@ -17,18 +17,18 @@ import (
 	"github.com/batazor/whiteout-survival-autopilot/internal/utils"
 )
 
-// UseCaseExecutor описывает интерфейс для выполнения UseCase
+// UseCaseExecutor describes the interface for executing UseCase
 type UseCaseExecutor interface {
 	ExecuteUseCase(ctx context.Context, uc *domain.UseCase, state *domain.Gamer, queue *redis_queue.Queue)
 	Analyzer() Analyzer
 }
 
-// Analyzer описывает интерфейс для анализа скриншота и обновления состояния игрока
+// Analyzer describes the interface for analyzing screenshots and updating player state
 type Analyzer interface {
 	AnalyzeAndUpdateState(state *domain.Gamer, rules []domain.AnalyzeRule, queue *redis_queue.Queue) (*domain.Gamer, error)
 }
 
-// NewUseCaseExecutor возвращает реализацию UseCaseExecutor
+// NewUseCaseExecutor returns an implementation of UseCaseExecutor
 func NewUseCaseExecutor(
 	logger *slog.Logger,
 	triggerEvaluator config.TriggerEvaluator,
@@ -65,18 +65,18 @@ func (e *executorImpl) Analyzer() Analyzer {
 	return e.analyzer
 }
 
-// ExecuteUseCase выполняет сам UseCase целиком
+// ExecuteUseCase executes the entire UseCase
 func (e *executorImpl) ExecuteUseCase(ctx context.Context, uc *domain.UseCase, gamer *domain.Gamer, queue *redis_queue.Queue) {
-	// Создаём span для всего UseCase
+	// Create a span for the entire UseCase
 	start := time.Now()
 	tracer := otel.Tracer("bot")
 	ctx, span := tracer.Start(ctx, uc.Name)
 	defer span.End()
 
-	// Извлекаем TraceID для логов
+	// Extract TraceID for logs
 	traceID := trace.SpanFromContext(ctx).SpanContext().TraceID().String()
 
-	// Проверяем триггер UseCase
+	// Check UseCase trigger
 	if uc.Trigger != "" {
 		ok, err := e.triggerEvaluator.EvaluateTrigger(uc.Trigger, gamer)
 		if err != nil {
@@ -104,42 +104,42 @@ func (e *executorImpl) ExecuteUseCase(ctx context.Context, uc *domain.UseCase, g
 	)
 
 	for _, step := range uc.Steps {
-		// Вызываем вложенные шаги
+		// Call nested steps
 		e.runStep(ctx, step, 0, gamer)
 	}
 
-	// Логируем окончание UseCase с TraceID
+	// Log UseCase completion with TraceID
 	e.logger.Info("=== End usecase ===",
 		slog.String("name", uc.Name),
 		slog.String("trace_id", traceID),
 	)
 
-	// Если UseCase успешно выполнен — ставим TTL (если есть)
+	// If UseCase executed successfully — set TTL (if exists)
 	if uc.TTL > 0 && queue != nil {
 		if err := queue.SetLastExecuted(ctx, gamer.ID, uc.Name, uc.TTL); err != nil {
 			e.logger.Error("Failed to set last executed TTL", slog.Any("error", err))
 		}
 	}
 
-	// Счётчики и метрики
+	// Counters and metrics
 	metrics.UsecaseTotal.WithLabelValues(uc.Name).Inc()
 	metrics.UsecaseDuration.WithLabelValues(uc.Name).Observe(time.Since(start).Seconds())
 
-	// Пример записи метрик состояния игрока
+	// Example of recording player state metrics
 	if gamer != nil {
-		// Сила игрока
+		// Player power
 		metrics.GamerPowerGauge.WithLabelValues(gamer.Nickname).Set(float64(gamer.Power))
 
-		// Уровень печки (если доступен)
+		// Furnace level (if available)
 		if gamer.Buildings.Furnace.Level > 0 {
 			metrics.GamerFurnaceLevel.WithLabelValues(gamer.Nickname).Set(float64(gamer.Buildings.Furnace.Level))
 		}
 	}
 }
 
-// runStep выполняет один шаг UseCase (возможно рекурсивно вызывает сам себя для вложенных шагов)
+// runStep executes one UseCase step (possibly recursively calling itself for nested steps)
 func (e *executorImpl) runStep(ctx context.Context, step domain.Step, indent int, gamer *domain.Gamer) bool {
-	// Начинаем трейс на каждый шаг
+	// Start tracing for each step
 	ctx, stepSpan := otel.Tracer("bot").Start(ctx, "runStep: "+step.Action)
 	defer stepSpan.End()
 
@@ -152,7 +152,7 @@ func (e *executorImpl) runStep(ctx context.Context, step domain.Step, indent int
 
 	prefix := strings.Repeat("  ", indent)
 
-	// Если есть step.Click — кликаем
+	// If step.Click exists — click
 	if step.Click != "" {
 		e.logger.Info(prefix+"Click", slog.String("target", step.Click))
 
@@ -166,20 +166,20 @@ func (e *executorImpl) runStep(ctx context.Context, step domain.Step, indent int
 		}
 	}
 
-	// Если есть step.Click — выполняем её
+	// If step.Action exists — execute it
 	if step.Action != "" {
 		e.logger.Info(prefix+"Click", slog.String("action", step.Action))
 
 		switch step.Action {
 
-		// Сброс state-поля: "reset"
+		// Reset state field: "reset"
 		case "reset":
 			if step.Set == "" {
 				e.logger.Warn(prefix + "Reset skipped: missing 'set' field")
 				return false
 			}
 
-			// Получим текущее значение для логирования
+			// Get current value for logging
 			prevVal, _ := utils.GetStateFieldByPath(gamer, step.Set)
 
 			if err := utils.SetStateFieldByPath(gamer, step.Set, step.To); err != nil {
@@ -197,14 +197,14 @@ func (e *executorImpl) runStep(ctx context.Context, step domain.Step, indent int
 				)
 			}
 
-		// Организация цикла: "loop"
+		// Loop organization: "loop"
 		case "loop":
 			if step.Trigger == "" {
 				e.logger.Warn(prefix + "Loop trigger is missing, skipping loop")
 				return false
 			}
 
-			// Создаём отдельный спан на весь цикл
+			// Create a separate span for the entire loop
 			loopCtx, loopSpan := otel.Tracer("bot").Start(ctx, prefix+"loop: "+step.Trigger)
 			defer loopSpan.End()
 
@@ -236,14 +236,14 @@ func (e *executorImpl) runStep(ctx context.Context, step domain.Step, indent int
 				}
 			}
 
-		// Принудительный выход из цикла
+		// Forced loop exit
 		case "loop_stop":
 			e.logger.Info(prefix + "Received loop_stop")
 			return true
 
-		// Скриншот с последующим анализом
+		// Screenshot with subsequent analysis
 		case "screenshot":
-			// Если есть правила анализа
+			// If there are analysis rules
 			if len(step.Analyze) > 0 {
 				_, analyzeSpan := otel.Tracer("bot").Start(ctx, prefix+"AnalyzeAndUpdateState")
 				defer analyzeSpan.End()
@@ -259,7 +259,7 @@ func (e *executorImpl) runStep(ctx context.Context, step domain.Step, indent int
 		}
 	}
 
-	// Если есть step.Wait — ждём
+	// If step.Wait exists — wait
 	if step.Wait > 0 {
 		e.logger.Info(prefix+"Wait", slog.Duration("duration", step.Wait))
 		select {
@@ -270,9 +270,9 @@ func (e *executorImpl) runStep(ctx context.Context, step domain.Step, indent int
 		}
 	}
 
-	// Если есть условие if/then/else
+	// If there's an if/then/else condition
 	if step.If != nil {
-		// Заводим отдельный спан для всего `if`
+		// Create a separate span for the entire `if`
 		ifCtx, ifSpan := otel.Tracer("bot").Start(ctx, prefix+"if: "+step.If.Trigger)
 		defer ifSpan.End()
 
@@ -314,7 +314,7 @@ func (e *executorImpl) runStep(ctx context.Context, step domain.Step, indent int
 		}
 	}
 
-	// Длинный тап (longtap)
+	// Long tap (longtap)
 	if step.Longtap != "" {
 		e.logger.Info(prefix+"Longtap", slog.String("target", step.Longtap), slog.Duration("hold", step.Wait))
 
@@ -328,7 +328,7 @@ func (e *executorImpl) runStep(ctx context.Context, step domain.Step, indent int
 		}
 
 		x, y, _, _ := bbox.ToPixels()
-		err = e.adb.Swipe(x, y, x, y, step.Wait) // свайп на то же место с заданным временем
+		err = e.adb.Swipe(x, y, x, y, step.Wait) // swipe to the same place with specified time
 		if err != nil {
 			e.logger.Error(prefix+"Failed to perform longtap",
 				slog.String("target", step.Longtap),
@@ -341,7 +341,7 @@ func (e *executorImpl) runStep(ctx context.Context, step domain.Step, indent int
 	// --- PUSH-USECASE --------------------------------------------
 	if len(step.PushUsecase) > 0 && e.queue != nil {
 		for _, push := range step.PushUsecase {
-			// 1) проверяем триггер (если есть)
+			// 1) check trigger (if exists)
 			if push.Trigger != "" {
 				ok, err := e.triggerEvaluator.EvaluateTrigger(push.Trigger, gamer)
 				if err != nil {
@@ -356,7 +356,7 @@ func (e *executorImpl) runStep(ctx context.Context, step domain.Step, indent int
 				}
 			}
 
-			// Если триггер выполнен, добавляем usecase в очередь
+			// If trigger is satisfied, add usecase to queue
 			for _, uc := range push.List {
 				ucOriginal := e.usecaseLoader.GetByName(uc.Name)
 

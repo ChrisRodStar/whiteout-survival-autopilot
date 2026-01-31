@@ -7,16 +7,16 @@ import (
 	"time"
 )
 
-// parseTimeDuration распознаёт строки вроде
-//   - 42d171612   → 42 дн 17 ч 16 м 12 с
-//   - 3d4h30m     → 3 дн 4 ч 30 м
-//   - 90m10s      → 1 ч 30 м 10 с
+// parseTimeDuration recognizes strings like
+//   - 42d171612   → 42 days 17 h 16 m 12 s
+//   - 3d4h30m     → 3 days 4 h 30 m
+//   - 90m10s      → 1 h 30 m 10 s
 //
-// Возвращает time.Duration (0 при ошибке).
+// Returns time.Duration (0 on error).
 func parseTimeDuration(s string) time.Duration {
 	clean := strings.ToLower(strings.ReplaceAll(s, " ", ""))
 
-	// 1) Компактный формат 42dHHMMSS
+	// 1) Compact format 42dHHMMSS
 	if m := regexp.MustCompile(`^(\d+)d(\d{2})(\d{2})(\d{2})$`).FindStringSubmatch(clean); m != nil {
 		days, _ := strconv.Atoi(m[1])
 		hours, _ := strconv.Atoi(m[2])
@@ -28,7 +28,7 @@ func parseTimeDuration(s string) time.Duration {
 			time.Duration(secs)*time.Second)
 	}
 
-	// 2) Свободный порядок с суффиксами d/h/m/s
+	// 2) Free order with suffixes d/h/m/s
 	re := regexp.MustCompile(`(?:(\d+)d)?(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?`)
 	if m := re.FindStringSubmatch(clean); m != nil {
 		var days, hours, mins, secs int

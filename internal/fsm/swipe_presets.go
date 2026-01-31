@@ -1,6 +1,6 @@
 package fsm
 
-// Swipe presets (экран 1080x2400, смещение 300px)
+// Swipe presets (screen 1080x2400, offset 300px)
 var (
 	SwipeRight300 = &Swipe{
 		X1: 540, Y1: 1200,

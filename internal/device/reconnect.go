@@ -34,38 +34,38 @@ package device
 //
 //			found, err := h.checkReconnectWindow(screenshotPath)
 //			if err != nil {
-//				h.logger.Warn("❌ Ошибка при проверке окна reconnect", slog.Any("err", err))
+//				h.logger.Warn("❌ Error checking reconnect window", slog.Any("err", err))
 //				return err
 //			}
 //			if !found {
-//				h.logger.Info("✅ Кнопка reconnect не обнаружена, продолжаем работу")
+//				h.logger.Info("✅ Reconnect button not detected, continuing work")
 //				return nil
 //			}
 //
-//			h.logger.Warn("Reconnect окно обнаружено, пробуем переподключиться",
+//			h.logger.Warn("Reconnect window detected, trying to reconnect",
 //				slog.Int("attempt", attempt),
 //				slog.Int("restartCount", restartCount),
 //			)
 //
 //			if err := h.adbController.ClickRegion("reconnect_button", h.area); err != nil {
-//				return fmt.Errorf("ошибка клика по кнопке reconnect: %w", err)
+//				return fmt.Errorf("error clicking reconnect button: %w", err)
 //			}
 //
-//			h.logger.Info("⏳ Ожидаем завершение загрузки после клика (20 секунд)")
+//			h.logger.Info("⏳ Waiting for loading to complete after click (20 seconds)")
 //			time.Sleep(waitAfterReconnectClick)
 //		}
 //
-//		// --- Рестарт приложения ---
-//		h.logger.Error("🚨 Переподключение не удалось, перезапускаем приложение")
+//		// --- Application restart ---
+//		h.logger.Error("🚨 Reconnection failed, restarting application")
 //		if err := h.adbController.RestartApplication(); err != nil {
-//			return fmt.Errorf("не удалось перезапустить приложение: %w", err)
+//			return fmt.Errorf("failed to restart application: %w", err)
 //		}
 //
-//		h.logger.Info("⏳ Ждем загрузку приложения (10 секунд)")
+//		h.logger.Info("⏳ Waiting for application to load (10 seconds)")
 //		time.Sleep(waitAfterRestart)
 //
-//		// --- После рестарта ждём исчезновения кнопки reconnect ---
-//		h.logger.Info("⏳ Ожидаем исчезновение кнопки reconnect (до 20 секунд)")
+//		// --- After restart, wait for reconnect button to disappear ---
+//		h.logger.Info("⏳ Waiting for reconnect button to disappear (up to 20 seconds)")
 //
 //		expire := time.After(maxTimeout)
 //		tick := time.NewTicker(2 * time.Second)
@@ -74,7 +74,7 @@ package device
 //		for {
 //			select {
 //			case <-expire:
-//				h.logger.Warn("🔁 Кнопка reconnect все еще на экране после рестарта — продолжаем цикл")
+//				h.logger.Warn("🔁 Reconnect button still on screen after restart — continuing loop")
 //				break
 //
 //			case <-tick.C:
@@ -83,7 +83,7 @@ package device
 //					return err
 //				}
 //				if !found {
-//					h.logger.Info("✅ Кнопка reconnect исчезла — продолжаем работу")
+//					h.logger.Info("✅ Reconnect button disappeared — continuing work")
 //					return nil
 //				}
 //			}
@@ -92,23 +92,23 @@ package device
 //}
 //
 //func (h *ReconnectHandler) checkReconnectWindow(screenshotPath string) (bool, error) {
-//	// выполняем OCR только в области кнопки reconnect
+//	// perform OCR only in the reconnect button area
 //	results, err := h.OCRClient.FetchOCRByAreaName("reconnect_button", "reconnect_check")
 //	if err != nil {
 //		h.logger.Error("❌ OCRClient FetchOCRByAreaName failed for reconnect", slog.Any("error", err))
 //		return false, err
 //	}
 //
-//	// если ничего не распознано — окно не появилось
+//	// if nothing recognized — window didn't appear
 //	if len(results) == 0 {
 //		return false, nil
 //	}
 //
-//	// берём первый результат и приводим к нижнему регистру
+//	// take first result and convert to lowercase
 //	text := strings.ToLower(strings.TrimSpace(results[0].Text))
 //	h.logger.Info("🔍 OCR result reconnect", slog.String("text", text))
 //
-//	// нестрогий матч по слову "reconnect"
+//	// fuzzy match for the word "reconnect"
 //	target := "reconnect"
 //	if strings.Contains(text, target) || vision.FuzzySubstringMatch(text, target, 1) {
 //		h.logger.Info("✅ reconnect window detected")

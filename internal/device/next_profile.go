@@ -13,7 +13,7 @@ import (
 )
 
 func (d *Device) NextProfile(profileIdx, expectedGamerIdx int) {
-	// 🕒 Ждём, чтобы не было конфликта с другими процессами
+	// 🕒 Wait to avoid conflicts with other processes
 	time.Sleep(500 * time.Millisecond)
 
 	ctx := context.Background()
@@ -21,22 +21,22 @@ func (d *Device) NextProfile(profileIdx, expectedGamerIdx int) {
 	profile := d.Profiles[profileIdx]
 	expected := &profile.Gamer[expectedGamerIdx]
 
-	d.Logger.Info("🎮 Смена активного игрока",
+	d.Logger.Info("🎮 Changing active player",
 		slog.String("email", profile.Email),
-		slog.String("ожидаемый", expected.Nickname),
+		slog.String("expected", expected.Nickname),
 	)
 
-	// 🔁 Навигация: переходим к экрану выбора аккаунта Google
-	d.Logger.Info("➡️ Переход в экран выбора аккаунта")
+	// 🔁 Navigation: go to Google account selection screen
+	d.Logger.Info("➡️ Navigating to account selection screen")
 	d.FSM.ForceTo(state.StateChiefProfileAccountChangeGoogle, nil)
 
-	// 🕒 Ждём, чтобы не было конфликта с другими процессами
+	// 🕒 Wait to avoid conflicts with other processes
 	time.Sleep(2 * time.Second)
 
-	// ========== 1️⃣ Делаем единый full-screen OCR ==========
+	// ========== 1️⃣ Perform unified full-screen OCR ==========
 	region, ok := d.AreaLookup.Get("google_profile")
 	if !ok {
-		d.Logger.Error("❌ Не удалось найти область google_profile")
+		d.Logger.Error("❌ Failed to find google_profile area")
 		panic("AreaLookup(google_profile) failed")
 	}
 
@@ -53,7 +53,7 @@ func (d *Device) NextProfile(profileIdx, expectedGamerIdx int) {
 		panic(fmt.Sprintf("ocrClient.FetchOCR() failed: %v", fullErr))
 	}
 
-	// 📦 OCR по email
+	// 📦 OCR by email
 	var emailZone *domain.OCRResult
 	for _, zone := range fullOCR {
 		if zone.Text == profile.Email {
@@ -62,9 +62,9 @@ func (d *Device) NextProfile(profileIdx, expectedGamerIdx int) {
 		}
 	}
 
-	d.Logger.Info("🟢 Клик по email аккаунту", slog.String("text", emailZone.Text), slog.String("region", emailZone.String()))
+	d.Logger.Info("🟢 Clicking email account", slog.String("text", emailZone.Text), slog.String("region", emailZone.String()))
 	if err := d.ADB.ClickOCRResult(emailZone); err != nil {
-		d.Logger.Error("❌ Не удалось кликнуть по email аккаунту", slog.Any("err", err))
+		d.Logger.Error("❌ Failed to click email account", slog.Any("err", err))
 		panic(fmt.Sprintf("ClickRegion(email:gamer1) failed: %v", err))
 	}
 
@@ -72,55 +72,55 @@ func (d *Device) NextProfile(profileIdx, expectedGamerIdx int) {
 
 	googleContinueArea, ok := d.AreaLookup.Get("to_google_continue")
 	if !ok {
-		d.Logger.Error("❌ Не удалось найти область to_google_continue")
+		d.Logger.Error("❌ Failed to find to_google_continue area")
 		panic("AreaLookup(to_google_continue) failed")
 	}
 
-	// Ждём текст "Continue" через OCR-клиент
+	// Wait for "Continue" text via OCR client
 	if _, err := d.OCRClient.WaitForText([]string{"Continue"}, time.Second, 500*time.Millisecond, "continue"); err != nil {
 		d.Logger.Error("❌ OCRClient WaitForText failed for Continue", slog.Any("err", err))
 		panic(fmt.Sprintf("OCRClient.WaitForText(Continue) failed: %v", err))
 	}
 
-	d.Logger.Info("🟢 Клик по кнопке продолжения Google", slog.String("region", "to_google_continue"))
+	d.Logger.Info("🟢 Clicking Google continue button", slog.String("region", "to_google_continue"))
 
 	if err := d.ADB.Click(googleContinueArea.Zone); err != nil {
-		d.Logger.Error("❌ Не удалось кликнуть по to_google_continue", slog.Any("err", err))
+		d.Logger.Error("❌ Failed to click to_google_continue", slog.Any("err", err))
 		panic(fmt.Sprintf("ClickRegion(to_google_continue) failed: %v", err))
 	}
 
-	// ♻️ сброс FSM после входа
+	// ♻️ Reset FSM after login
 	d.activeProfileIdx = profileIdx
 	d.activeGamerIdx = expectedGamerIdx
 	d.FSM = fsm.NewGame(d.Logger, d.ADB, d.AreaLookup, d.triggerEvaluator, d.ActiveGamer(), d.OCRClient)
 
-	// Проверка стартовых баннеров
+	// Check entry banners
 	err := d.handleEntryScreens(ctx)
 	if err != nil {
-		d.Logger.Error("❌ Не удалось обработать стартовые баннеры", slog.Any("err", err))
+		d.Logger.Error("❌ Failed to handle entry banners", slog.Any("err", err))
 		panic(fmt.Sprintf("handleEntryScreens() failed: %v", err))
 	}
 
-	// 🔍 Проверяем, что активный профиль — тот, что ожидали
+	// 🔍 Check that the active profile is the one expected
 	active, pIdx, _, err := d.DetectAndSetCurrentGamer(ctx)
 	if err != nil || pIdx != profileIdx {
-		d.Logger.Warn("⚠️ После входа активный профиль не совпадает", slog.Any("detected_profile", pIdx), slog.Any("err", err))
+		d.Logger.Warn("⚠️ After login, active profile doesn't match", slog.Any("detected_profile", pIdx), slog.Any("err", err))
 		return
 	}
 
-	// 🧾 Если игрок не тот — переключаемся вручную
+	// 🧾 If player is not the right one — switch manually
 	if active.ID != expected.ID {
-		d.Logger.Warn("🛑 Автоматически выбран не тот игрок — делаем переключение",
-			slog.String("ожидался", expected.Nickname),
-			slog.String("получен", active.Nickname),
+		d.Logger.Warn("🛑 Automatically selected wrong player — switching",
+			slog.String("expected", expected.Nickname),
+			slog.String("got", active.Nickname),
 		)
 		d.NextGamer(profileIdx, expectedGamerIdx)
 	}
 
-	// ✅ Устанавливаем колбэк
+	// ✅ Set callback
 	d.FSM.SetCallback(active)
 
-	d.Logger.Info("✅ Успешно переключились на новый профиль", "nickname", active.Nickname)
+	d.Logger.Info("✅ Successfully switched to new profile", "nickname", active.Nickname)
 }
 
 func (d *Device) ActiveGamer() *domain.Gamer {

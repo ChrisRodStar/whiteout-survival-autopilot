@@ -49,7 +49,7 @@ steps: []
 	active, err := loader.LoadAll(context.Background())
 	require.NoError(t, err)
 
-	// Активные: только те, что с cron или из debug
+	// Active: only those with cron or from debug
 	require.Len(t, active, 2)
 	names := map[string]bool{}
 	for _, uc := range active {
@@ -59,16 +59,16 @@ steps: []
 	require.True(t, names["FromDebug"])
 	require.False(t, names["Skipped"])
 
-	// В индексе — все три
+	// In the index — all three
 	require.NotNil(t, loader.GetByName("FromCron"))
 	require.NotNil(t, loader.GetByName("FromDebug"))
 	require.NotNil(t, loader.GetByName("Skipped"))
 	require.Nil(t, loader.GetByName("Unknown"))
 
-	// TTL проставлен для debug usecase
+	// TTL is set for debug usecase
 	fromDebug := loader.GetByName("FromDebug")
 	require.Equal(t, time.Duration(1), fromDebug.TTL)
 
-	// SourcePath должен быть сохранён
+	// SourcePath should be saved
 	require.Contains(t, fromDebug.SourcePath, "debug/only_debug.yaml")
 }

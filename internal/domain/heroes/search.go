@@ -1,6 +1,6 @@
 package heroes
 
-// BestForResource возвращает список доступных героев с баффом на указанный ресурс.
+// BestForResource returns a list of available heroes with a buff for the specified resource.
 func (h Heroes) BestForResource(resource string) []Hero {
 	var result []Hero
 	key := resource + "_gathering_speed"
@@ -16,7 +16,7 @@ func (h Heroes) BestForResource(resource string) []Hero {
 	return result
 }
 
-// BestForDefense возвращает доступных героев с ролью обороны.
+// BestForDefense returns available heroes with a defense role.
 func (h Heroes) BestForDefense() []Hero {
 	var result []Hero
 	for _, hero := range h.List {
@@ -33,7 +33,7 @@ func (h Heroes) BestForDefense() []Hero {
 	return result
 }
 
-// BestForAttack возвращает доступных героев с боевой ролью.
+// BestForAttack returns available heroes with a combat role.
 func (h Heroes) BestForAttack() []Hero {
 	var result []Hero
 
@@ -52,7 +52,7 @@ func (h Heroes) BestForAttack() []Hero {
 	return result
 }
 
-// Available возвращает структуру Heroes с только доступными героями.
+// Available returns a Heroes structure with only available heroes.
 func (h Heroes) Available() Heroes {
 	out := Heroes{
 		IsNotify: h.IsNotify,

@@ -33,30 +33,30 @@ func TestExpectState_TableDriven(t *testing.T) {
 		analyzeErr     error
 	}{
 		{
-			name:           "want входит в фильтрованную группу (город)",
+			name:           "want in filtered group (city)",
 			want:           "main_city",
-			ocrTitle:       "MainCity", // <-- ключ совпадает с мапой!
-			ocrFamily:      "world",    // фильтруем на main_city
+			ocrTitle:       "MainCity", // <-- key matches the map!
+			ocrFamily:      "world",    // filter on main_city
 			expectedResult: "main_city",
 		},
 		{
-			name:           "want входит в фильтрованную группу (мир)",
+			name:           "want in filtered group (world)",
 			want:           "world",
 			ocrTitle:       "MainCity",
-			ocrFamily:      "city", // фильтруем на world
+			ocrFamily:      "city", // filter on world
 			expectedResult: "world",
 		},
 		{
-			name:           "want не в группе, но группа не пуста — вернёт первый",
+			name:           "want not in group, but group not empty — returns first",
 			want:           "some_state",
 			ocrTitle:       "MainCity",
 			ocrFamily:      "",
 			expectedResult: "some_state",
 		},
 		{
-			name:           "нет совпадений по заголовку — возвращает want",
+			name:           "no title matches — returns want",
 			want:           "mail",
-			ocrTitle:       "Unknown", // Нет такого ключа
+			ocrTitle:       "Unknown", // No such key
 			ocrFamily:      "",
 			expectedResult: "mail",
 		},

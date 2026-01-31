@@ -13,11 +13,11 @@ import (
 	"github.com/batazor/whiteout-survival-autopilot/internal/repository"
 )
 
-// LoadDeviceConfig читает YAML-файл конфигурации устройств и десериализует его в структуру domain.Config.
+// LoadDeviceConfig reads the device configuration YAML file and deserializes it into the domain.Config structure.
 func LoadDeviceConfig(devicesFile string, repo repository.StateRepository) (*domain.Config, error) {
 	ctx := context.Background()
 
-	// 📄 Загружаем devices.yaml
+	// 📄 Load devices.yaml
 	devicesData, err := os.ReadFile(filepath.Clean(devicesFile))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read devices.yaml: %w", err)
@@ -28,33 +28,33 @@ func LoadDeviceConfig(devicesFile string, repo repository.StateRepository) (*dom
 		return nil, fmt.Errorf("failed to unmarshal devices.yaml: %w", err)
 	}
 
-	// 🧠 Загружаем state из репозитория
+	// 🧠 Load state from repository
 	state, err := repo.LoadState(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load state.yaml from repo: %w", err)
 	}
 
-	// 🔍 Индексируем state по gamer.ID
+	// 🔍 Index state by gamer.ID
 	stateMap := make(map[int]domain.Gamer)
 	for _, g := range state.Gamers {
 		stateMap[g.ID] = g
 	}
 
-	// 🔁 Мержим по ID и сортируем для стабильного порядка
+	// 🔁 Merge by ID and sort for stable order
 	for dIdx := range cfg.Devices {
 		for pIdx := range cfg.Devices[dIdx].Profiles {
-			// 🔄 Мержим состояние для каждого игрока
+			// 🔄 Merge state for each player
 			for gIdx, gamer := range cfg.Devices[dIdx].Profiles[pIdx].Gamer {
 				if full, ok := stateMap[gamer.ID]; ok {
 					cfg.Devices[dIdx].Profiles[pIdx].Gamer[gIdx] = full
 				}
 			}
 
-			// 🔡 Сортируем игроков по Nickname
+			// 🔡 Sort players by Nickname
 			sort.Sort(domain.Gamers(cfg.Devices[dIdx].Profiles[pIdx].Gamer))
 		}
 
-		// 📧 Сортируем профили по Email
+		// 📧 Sort profiles by Email
 		sort.Sort(domain.Profiles(cfg.Devices[dIdx].Profiles))
 	}
 

@@ -41,7 +41,7 @@ func (g *GameFSM) ForceTo(target string, updateStateFromScreen func(ctx context.
 		}
 
 		for i, step := range steps {
-			// Проверка Trigger (CEL)
+			// Check Trigger (CEL)
 			if step.Trigger != "" {
 				ok, err := g.triggerEvaluator.EvaluateTrigger(step.Trigger, g.gamerState)
 				if err != nil {
@@ -60,7 +60,7 @@ func (g *GameFSM) ForceTo(target string, updateStateFromScreen func(ctx context.
 				}
 			}
 
-			// Проверка условий для клика
+			// Check conditions for click
 			if step.Click != "" {
 				if _, ok := g.lookup.Get(step.Click); !ok {
 					panic(fmt.Sprintf("❌ Region '%s' not found in area.json", step.Click))
@@ -73,7 +73,7 @@ func (g *GameFSM) ForceTo(target string, updateStateFromScreen func(ctx context.
 				}
 			}
 
-			// Проверка условий для свайпа
+			// Check conditions for swipe
 			if step.Swipe != nil {
 				g.logger.Info("Swiping",
 					slog.Int("x1", step.Swipe.X1), slog.Int("y1", step.Swipe.Y1),
@@ -86,7 +86,7 @@ func (g *GameFSM) ForceTo(target string, updateStateFromScreen func(ctx context.
 				}
 			}
 
-			// СКИП проверки стейта если это свайп
+			// SKIP state check if this is a swipe
 			if step.Swipe != nil {
 				time.Sleep(step.Wait)
 				continue
@@ -103,7 +103,7 @@ func (g *GameFSM) ForceTo(target string, updateStateFromScreen func(ctx context.
 
 			actual, errCheckState := g.ExpectState(expected)
 			if errCheckState != nil {
-				g.logger.Error("❌ Ошибка при проверке состояния после действия",
+				g.logger.Error("❌ Error checking state after action",
 					slog.String("click", step.Click),
 					slog.String("expected", expected),
 					slog.String("actual", actual),
@@ -113,25 +113,25 @@ func (g *GameFSM) ForceTo(target string, updateStateFromScreen func(ctx context.
 			}
 
 			if actual != expected {
-				g.logger.Warn("⚠️ Обнаружено несоответствие состояния после действия",
+				g.logger.Warn("⚠️ State mismatch detected after action",
 					slog.String("click", step.Click),
 					slog.String("expected", expected),
 					slog.String("actual", actual),
 				)
 
-				// фиксируем актуальный стейт сразу в FSM и в стейте игрока!
+				// fix actual state immediately in FSM and player state!
 				g.fsm.SetState(actual)
 				g.gamerState.ScreenState.CurrentState = actual
 
-				// пробуем построить путь к цели из текущего положения
+				// try to build path to target from current position
 				return g.ForceTo(target, updateStateFromScreen)
 			}
 
-			// Успешный шаг: синхронизируем FSM и состояние игрока
+			// Successful step: synchronize FSM and player state
 			g.fsm.SetState(actual)
 			g.gamerState.ScreenState.CurrentState = actual
 
-			// --- callback & скриншот -----------------------------------------------
+			// --- callback & screenshot -----------------------------------------------
 			if g.callback != nil {
 				if updateStateFromScreen != nil {
 					updateStateFromScreen(
@@ -158,10 +158,10 @@ func (g *GameFSM) ForceTo(target string, updateStateFromScreen func(ctx context.
 		}
 	}
 
-	// финальная синхронизация
+	// final synchronization
 	eventName := fmt.Sprintf("%s_to_%s", prev, target)
 	if err := g.fsm.Event(context.Background(), eventName); err != nil {
-		// Если эвент не определён, форсируем смену состояния везде!
+		// If event is not defined, force state change everywhere!
 		g.fsm.SetState(target)
 		g.logger.Warn("FSM forcefully moved to new state",
 			slog.String("from", prev),
@@ -169,7 +169,7 @@ func (g *GameFSM) ForceTo(target string, updateStateFromScreen func(ctx context.
 		)
 	}
 
-	// В любом случае, после FSM-перехода (или ручного SetState) — синхронизируем gamerState:
+	// In any case, after FSM transition (or manual SetState) — synchronize gamerState:
 	g.gamerState.ScreenState.CurrentState = target
 
 	return nil

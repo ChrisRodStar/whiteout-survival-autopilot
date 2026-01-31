@@ -2,15 +2,15 @@ package domain
 
 import "time"
 
-// BuildingDetails описывает параметры здания, которые не зависят от уровня и меняются редко.
-// Эти данные могут быть использованы для расчёта времени постройки, стоимости и бонусов здания.
+// BuildingDetails describes building parameters that are level-independent and rarely change.
+// This data can be used to calculate construction time, cost, and building bonuses.
 type BuildingDetails struct {
-	// ConstructionTime – время, необходимое для постройки здания (например, "2h30m").
+	// ConstructionTime – time required to construct the building (e.g., "2h30m").
 	ConstructionTime time.Duration `yaml:"construction_time"`
 
-	// Cost – затраты ресурсов для постройки здания.
+	// Cost – resource costs for building construction.
 	Cost Resources `yaml:"cost"`
 
-	// Benefits – описание бонусов, которые дает здание (например, увеличение производства продовольствия).
+	// Benefits – description of bonuses provided by the building (e.g., increased food production).
 	Benefits string `yaml:"benefits"`
 }

@@ -26,7 +26,7 @@ type PlayerInfo struct {
 		KID          int    `json:"kid"`
 		StoveLevel   int    `json:"stove_lv"`
 		AvatarImage  string `json:"avatar_image"`
-		StoveContent int    `json:"stove_lv_content"` // <-- здесь исправить тип на int
+		StoveContent int    `json:"stove_lv_content"` // <-- fix type to int here
 	} `json:"data"`
 	Msg     string `json:"msg"`
 	ErrCode string `json:"err_code"`

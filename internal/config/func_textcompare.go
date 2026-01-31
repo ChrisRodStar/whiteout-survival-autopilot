@@ -13,9 +13,9 @@ import (
 // helpers
 // -----------------------------------------------------------------------------
 
-// FuzzySubstringMatch возвращает true, если needle встречается в haystack
-// c максимум maxDist ошибками Левенштейна внутри любого окна той же длины.
-// Дополнительно: если haystack короче needle, сравниваем строки целиком.
+// FuzzySubstringMatch returns true if needle occurs in haystack
+// with at most maxDist Levenshtein errors within any window of the same length.
+// Additionally: if haystack is shorter than needle, compare the strings entirely.
 func FuzzySubstringMatch(haystack, needle string, maxDist int) bool {
 	haystack = strings.ToLower(haystack)
 	needle = strings.ToLower(needle)
@@ -25,7 +25,7 @@ func FuzzySubstringMatch(haystack, needle string, maxDist int) bool {
 		return false
 	}
 
-	// haystack короче needle → сравниваем целиком
+	// haystack is shorter than needle → compare entirely
 	if m < n {
 		return levenshtein.ComputeDistance(haystack, needle) <= maxDist
 	}
@@ -39,10 +39,10 @@ func FuzzySubstringMatch(haystack, needle string, maxDist int) bool {
 }
 
 // -----------------------------------------------------------------------------
-// compareText(a, b) → bool  (регистрация в CEL)
+// compareText(a, b) → bool  (registration in CEL)
 // -----------------------------------------------------------------------------
 
-// compareTextBinding — фактическая реализация функции для CEL.
+// compareTextBinding — actual implementation of the function for CEL.
 func compareTextBinding(lhs, rhs ref.Val) ref.Val {
 	a, ok1 := lhs.Value().(string)
 	b, ok2 := rhs.Value().(string)
@@ -61,7 +61,7 @@ func compareTextBinding(lhs, rhs ref.Val) ref.Val {
 		return types.Bool(true)
 	}
 
-	// Только для подстрок длиной >= 4 символов применяем нечеткое совпадение
+	// Only for substrings of length >= 4 characters apply fuzzy matching
 	if len(al) >= 4 && FuzzySubstringMatch(bl, al, 1) {
 		return types.Bool(true)
 	}
@@ -69,7 +69,7 @@ func compareTextBinding(lhs, rhs ref.Val) ref.Val {
 	return types.Bool(false)
 }
 
-// CompareTextLib — EnvOption, регистрирующий функцию compareText.
+// CompareTextLib — EnvOption that registers the compareText function.
 var CompareTextLib = cel.Function(
 	"compareText",
 	cel.Overload(

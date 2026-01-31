@@ -9,7 +9,7 @@ type Device struct {
 	Profiles []Profile `yaml:"profiles"`
 }
 
-// AllProfiles возвращает плоский список всех профилей из всех девайсов
+// AllProfiles returns a flat list of all profiles from all devices
 func (c *Config) AllProfiles() []Profile {
 	var result []Profile
 
@@ -20,7 +20,7 @@ func (c *Config) AllProfiles() []Profile {
 	return result
 }
 
-// AllGamers возвращает плоский список всех игроков из всех профилей всех девайсов
+// AllGamers returns a flat list of all players from all profiles of all devices
 func (c *Config) AllGamers() []*Gamer {
 	var result []*Gamer
 

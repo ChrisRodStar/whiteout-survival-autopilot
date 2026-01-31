@@ -11,7 +11,7 @@ func FuzzySubstringMatch(ocrText, target string, maxDistance int) bool {
 	target = strings.ToLower(target)
 	tLen := len(target)
 
-	// Допускаем окна длиной target-1, target, target+1
+	// Allow windows of length target-1, target, target+1
 	for l := tLen - 1; l <= tLen+1 && l <= len(text); l++ {
 		if l <= 0 {
 			continue

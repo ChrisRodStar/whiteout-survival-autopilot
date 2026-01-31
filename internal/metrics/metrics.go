@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	// 📊 Общее количество выполнений usecase'ов
+	// 📊 Total number of usecase executions
 	UsecaseTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "bot_usecase_total",
@@ -18,7 +18,7 @@ var (
 		[]string{"usecase"},
 	)
 
-	// ⏱️ Время выполнения usecase'ов
+	// ⏱️ Usecase execution time
 	UsecaseDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name:    "bot_usecase_duration_seconds",
@@ -28,7 +28,7 @@ var (
 		[]string{"usecase"},
 	)
 
-	// 🧍 Сила игрока (обновляется после анализа состояния)
+	// 🧍 Player power (updated after state analysis)
 	GamerPowerGauge = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "bot_gamer_power",
@@ -37,7 +37,7 @@ var (
 		[]string{"gamer"},
 	)
 
-	// 🔥 Уровень печки игрока
+	// 🔥 Player furnace level
 	GamerFurnaceLevel = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "bot_gamer_furnace_level",
@@ -46,7 +46,7 @@ var (
 		[]string{"gamer"},
 	)
 
-	// ❌ Ошибки взаимодействия с ADB
+	// ❌ ADB interaction errors
 	ADBErrorTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "bot_adb_error_total",
@@ -56,7 +56,7 @@ var (
 	)
 )
 
-// 🚀 Регистрируем все метрики при запуске
+// 🚀 Register all metrics at startup
 func Init() {
 	prometheus.MustRegister(
 		UsecaseTotal,
@@ -67,7 +67,7 @@ func Init() {
 	)
 }
 
-// 🌐 Запуск HTTP-сервера для экспорта метрик Prometheus
+// 🌐 Start HTTP server for Prometheus metrics export
 func StartExporter() {
 	Init()
 

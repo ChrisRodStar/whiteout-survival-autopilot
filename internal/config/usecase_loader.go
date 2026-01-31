@@ -74,13 +74,13 @@ func (l *usecaseLoader) reloadIndex(ctx context.Context) error {
 	return nil
 }
 
-// Reload пересканирует директорию и обновляет список usecase-ов.
+// Reload rescans the directory and updates the list of usecases.
 func (l *usecaseLoader) Reload(ctx context.Context) error {
 	return l.reloadIndex(ctx)
 }
 
-// Watch включает отслеживание изменений директорий и файлов usecase-ов.
-// При изменении .yaml/.yml файлов автоматически обновляет кэш.
+// Watch enables monitoring of changes to usecase directories and files.
+// Automatically updates the cache when .yaml/.yml files change.
 func (l *usecaseLoader) Watch(ctx context.Context) error {
 	if l.watcher != nil {
 		return fmt.Errorf("already watching")
@@ -91,7 +91,7 @@ func (l *usecaseLoader) Watch(ctx context.Context) error {
 	}
 	l.watcher = watcher
 
-	// Рекурсивно следим за всеми поддиректориями
+	// Recursively monitor all subdirectories
 	err = filepath.Walk(l.dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -117,7 +117,7 @@ func (l *usecaseLoader) Watch(ctx context.Context) error {
 					log.Printf("[UseCaseLoader] Change detected: %s (%s), reloading...", event.Name, event.Op)
 					_ = l.Reload(ctx)
 				}
-				// Если появилась новая директория — начинаем за ней следить
+				// If a new directory appears — start monitoring it
 				if event.Op&fsnotify.Create == fsnotify.Create {
 					info, err := os.Stat(event.Name)
 					if err == nil && info.IsDir() {
@@ -151,7 +151,7 @@ func LoadUseCase(ctx context.Context, configFile string) (*domain.UseCase, error
 		return nil, fmt.Errorf("failed to unmarshal usecase %s: %w", configFile, err)
 	}
 
-	// сохранить имя файла в структуре
+	// save the file name in the structure
 	uc.SourcePath = configFile
 
 	return &uc, nil

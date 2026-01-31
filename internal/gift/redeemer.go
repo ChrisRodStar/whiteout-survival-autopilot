@@ -21,11 +21,11 @@ import (
 type RedeemConfig struct {
 	DevicesYAML string // db/devices.yaml
 	CodesYAML   string // db/giftCodes.yaml
-	PythonDir   string // каталог со скриптом redeem_code.py ("" ⇒ пакет discordgift)
+	PythonDir   string // directory with redeem_code.py script ("" ⇒ discordgift package)
 }
 
 func RunRedeemer(cfg RedeemConfig) {
-	// ── путь к redeem_code.py ──
+	// ── path to redeem_code.py ──
 	if cfg.PythonDir == "" {
 		_, thisFile, _, _ := runtime.Caller(0) // …/internal/discordgift/redeemer.go
 		cfg.PythonDir = filepath.Dir(thisFile) // …/internal/discordgift
@@ -46,7 +46,7 @@ func RunRedeemer(cfg RedeemConfig) {
 		for _, g := range players.AllGamers() {
 			uidStr := strconv.FormatInt(int64(g.ID), 10)
 
-			// пропускаем, если не ошибка
+			// skip if not an error
 			if prev, ok := code.UserFor[uidStr]; ok &&
 				!strings.HasPrefix(prev, "ERROR REDEEM") &&
 				!strings.HasPrefix(prev, "ERROR CAPTCHA_REQUEST") {
@@ -61,14 +61,14 @@ func RunRedeemer(cfg RedeemConfig) {
 			case status == "ALREADY_RECEIVED":
 				fmt.Printf("ℹ️  %s (%s) ALREADY_RECEIVED\n", g.Nickname, uidStr)
 			case status == "CDK_NOT_FOUND":
-				fmt.Printf("🚫 Код %s не существует – стоп\n", code.Name)
+				fmt.Printf("🚫 Code %s does not exist – stop\n", code.Name)
 				stop = true
 			default:
 				fmt.Printf("❌ %s (%s) %s\n", g.Nickname, uidStr, status)
 			}
 
-			code.UserFor[uidStr] = status   // записываем всегда
-			saveCodes(cfg.CodesYAML, codes) // и сразу сохраняем
+			code.UserFor[uidStr] = status   // always record
+			saveCodes(cfg.CodesYAML, codes) // and save immediately
 
 			if stop {
 				break
@@ -76,7 +76,7 @@ func RunRedeemer(cfg RedeemConfig) {
 			time.Sleep(time.Second)
 		}
 	}
-	fmt.Println("\n💾 giftCodes.yaml сохранён")
+	fmt.Println("\n💾 giftCodes.yaml saved")
 }
 
 /*──────── helpers ───────*/

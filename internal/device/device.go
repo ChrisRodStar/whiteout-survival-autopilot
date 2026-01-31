@@ -30,16 +30,16 @@ type Device struct {
 func New(deviceId string, profiles domain.Profiles, log *slog.Logger, areaPath string, rdb *redis.Client,
 	triggerEvaluator config.TriggerEvaluator) (*Device, error) {
 
-	log.Info("🔧 Инициализация ADB-контроллера")
+	log.Info("🔧 Initializing ADB controller")
 	controller, err := adb.NewController(log, deviceId)
 	if err != nil {
-		log.Error("❌ Не удалось создать ADB-контроллер", slog.Any("error", err))
+		log.Error("❌ Failed to create ADB controller", slog.Any("error", err))
 		return nil, err
 	}
 
 	areaLookup, err := config.LoadAreaReferences(areaPath)
 	if err != nil {
-		log.Error("❌ Ошибка загрузки area.json:", "error", err)
+		log.Error("❌ Error loading area.json:", "error", err)
 		return nil, err
 	}
 
@@ -54,7 +54,7 @@ func New(deviceId string, profiles domain.Profiles, log *slog.Logger, areaPath s
 		OCRClient:        ocrclient.NewClient(deviceId, log),
 	}
 
-	// Инициализация FSM
+	// Initialize FSM
 	device.FSM = fsm.NewGame(log, controller, areaLookup, triggerEvaluator, device.ActiveGamer(), device.OCRClient)
 
 	return device, nil

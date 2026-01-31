@@ -13,7 +13,7 @@ import (
 	"github.com/batazor/whiteout-survival-autopilot/internal/fsm"
 )
 
-// FakeADB реализует интерфейс adb.DeviceController и записывает вызовы ClickRegion.
+// FakeADB implements the adb.DeviceController interface and records ClickRegion calls.
 type FakeADB struct {
 	Clicks []string
 }
@@ -65,10 +65,10 @@ func TestForceTo(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Создаем FSM; начальное состояние – StateMainCity.
-			gameFSM := fsm.NewGame(logger, fakeADB, lookup, nil, nil)
+			// Create FSM; initial state – StateMainCity.
+			gameFSM := fsm.NewGame(logger, fakeADB, lookup, nil, nil, nil)
 
-			// Сбросим накопленные клики перед каждым тестом.
+			// Reset accumulated clicks before each test.
 			fakeADB.Clicks = nil
 			gameFSM.ForceTo(tc.target, nil)
 

@@ -1,18 +1,18 @@
 package domain
 
 type Chief struct {
-	Contentment int `yaml:"contentment"` // Очки удовлетворенности губернатора
+	Contentment int `yaml:"contentment"` // Governor satisfaction points
 
-	State ChiefState `yaml:"state"` // Состояние губернатора
+	State ChiefState `yaml:"state"` // Governor state
 }
 
 type ChiefState struct {
-	IsNotify bool `yaml:"isNotify"` // Флаг, указывающий, есть ли заказы губернатора.
+	IsNotify bool `yaml:"isNotify"` // Flag indicating whether there are governor orders.
 
-	IsUrgentMobilization bool `yaml:"isUrgentMobilization"` // Флаг, указывающий, есть ли срочная мобилизация.
-	IsComprehensiveCare  bool `yaml:"isComprehensiveCare"`  // Флаг, указывающий, есть ли всеобъемлющий уход.
-	IsProductivityDay    bool `yaml:"isProductivityDay"`    // Флаг, указывающий, есть ли день продуктивности.
-	IsRushJob            bool `yaml:"isRushJob"`            // Флаг, указывающий, есть ли спешная работа.
-	IsDoubleTime         bool `yaml:"isDoubleTime"`         // Флаг, указывающий, есть ли двойное время.
-	IsFestivities        bool `yaml:"isFestivities"`        // Флаг, указывающий, есть ли праздники.
+	IsUrgentMobilization bool `yaml:"isUrgentMobilization"` // Flag indicating whether there is urgent mobilization.
+	IsComprehensiveCare  bool `yaml:"isComprehensiveCare"`  // Flag indicating whether there is comprehensive care.
+	IsProductivityDay    bool `yaml:"isProductivityDay"`    // Flag indicating whether there is productivity day.
+	IsRushJob            bool `yaml:"isRushJob"`            // Flag indicating whether there is rush job.
+	IsDoubleTime         bool `yaml:"isDoubleTime"`         // Flag indicating whether there is double time.
+	IsFestivities        bool `yaml:"isFestivities"`        // Flag indicating whether there are festivities.
 }

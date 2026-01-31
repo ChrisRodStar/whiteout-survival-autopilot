@@ -1,45 +1,45 @@
 package domain
 
-// State содержит список аккаунтов, с которыми работает бот.
+// State contains the list of accounts that the bot works with.
 type State struct {
-	Gamers Gamers `yaml:"gamers"` // Игровые персонажи
+	Gamers Gamers `yaml:"gamers"` // Game characters
 }
 
-// Resources описывает ресурсы, которыми владеет персонаж.
+// Resources describes the resources owned by a character.
 type Resources struct {
-	Wood int `yaml:"wood"` // Дерево.
-	Food int `yaml:"food"` // Продовольствие.
-	Iron int `yaml:"iron"` // Железо.
-	Meat int `yaml:"meat"` // Мясо.
+	Wood int `yaml:"wood"` // Wood.
+	Food int `yaml:"food"` // Food.
+	Iron int `yaml:"iron"` // Iron.
+	Meat int `yaml:"meat"` // Meat.
 }
 
-// MessagesState содержит информацию о сообщениях персонажа.
+// MessagesState contains information about character messages.
 type MessagesState struct {
 	State MessageStatus `yaml:"state"`
 }
 
-// MessageStatus описывает состояние сообщений.
+// MessageStatus describes the message status.
 type MessageStatus struct {
-	IsNewMessage bool `yaml:"isNewMessage"` // Признак наличия новых сообщений.
-	IsNewReports bool `yaml:"isNewReports"` // Признак наличия новых отчётов.
+	IsNewMessage bool `yaml:"isNewMessage"` // Flag indicating the presence of new messages.
+	IsNewReports bool `yaml:"isNewReports"` // Flag indicating the presence of new reports.
 }
 
-// Building описывает отдельное здание.
+// Building describes an individual building.
 type Building struct {
-	Level int `yaml:"level"` // Уровень здания.
-	Power int `yaml:"power"` // Мощь здания.
-	// Можно добавить дополнительные поля, например, время постройки, затраты ресурсов и т.д.
+	Level int `yaml:"level"` // Building level.
+	Power int `yaml:"power"` // Building power.
+	// Additional fields can be added, such as construction time, resource costs, etc.
 }
 
-// Researches описывает уровни исследований персонажа.
+// Researches describes the character's research levels.
 type Researches struct {
-	Battle  Research `yaml:"battle"`  // Военные исследования.
-	Economy Research `yaml:"economy"` // Экономические исследования.
-	// Дополнительные исследования можно добавить здесь.
+	Battle  Research `yaml:"battle"`  // Military research.
+	Economy Research `yaml:"economy"` // Economic research.
+	// Additional research can be added here.
 }
 
-// Research описывает уровень конкретного исследования.
+// Research describes the level of a specific research.
 type Research struct {
-	Level int `yaml:"level"` // Уровень исследования.
-	// Дополнительные поля, если необходимо.
+	Level int `yaml:"level"` // Research level.
+	// Additional fields if needed.
 }

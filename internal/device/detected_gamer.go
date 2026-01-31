@@ -16,13 +16,13 @@ import (
 )
 
 func (d *Device) DetectedGamer(ctx context.Context) (int, int, error) {
-	d.Logger.Info("🚀 Определение текущего игрока")
+	d.Logger.Info("🚀 Detecting current player")
 
-	// 0. Переходим на экран профиля
+	// 0. Navigate to profile screen
 	d.FSM.ForceTo(state.StateChiefProfile, nil)
 
 	defer func() {
-		// 4. Возвращаемся на главный экран
+		// 4. Return to main screen
 		d.FSM.ForceTo(state.StateMainCity, nil)
 	}()
 
@@ -31,7 +31,7 @@ func (d *Device) DetectedGamer(ctx context.Context) (int, int, error) {
 		d.Logger.Error("GetRegionByName failed",
 			slog.String("region", "chief_profile_nickname"),
 		)
-		return -1, -1, errors.New("не найдено совпадений с никнеймом")
+		return -1, -1, errors.New("no matches found with nickname")
 	}
 
 	region := ocrclient.Region{
@@ -41,16 +41,16 @@ func (d *Device) DetectedGamer(ctx context.Context) (int, int, error) {
 		Y1: zone.Zone.Max.Y,
 	}
 
-	// 3. Распознаём никнейм игрока
-	fullOCR, fullErr := d.OCRClient.FetchOCR("", []ocrclient.Region{region}) // debugName можно опустить
+	// 3. Recognize player nickname
+	fullOCR, fullErr := d.OCRClient.FetchOCR("", []ocrclient.Region{region}) // debugName can be omitted
 	if fullErr != nil {
 		d.Logger.Error("Full OCR failed", slog.Any("error", fullErr))
 		return -1, -1, fmt.Errorf("full OCR failed: %w", fullErr)
 	}
 
 	if len(fullOCR) == 0 {
-		d.Logger.Warn("⚠️ Не удалось распознать никнейм игрока", slog.String("region", "chief_profile_nickname"))
-		return -1, -1, errors.New("не найдено совпадений с никнеймом")
+		d.Logger.Warn("⚠️ Failed to recognize player nickname", slog.String("region", "chief_profile_nickname"))
+		return -1, -1, errors.New("no matches found with nickname")
 	}
 
 	nicknameParsed := fullOCR[0].Text
@@ -60,7 +60,7 @@ func (d *Device) DetectedGamer(ctx context.Context) (int, int, error) {
 		nicknameParsed = strings.Split(nicknameParsed, "]")[1]
 	}
 
-	d.Logger.Info("🟢 Распознан никнейм", slog.String("parsed", nicknameParsed))
+	d.Logger.Info("🟢 Nickname recognized", slog.String("parsed", nicknameParsed))
 
 	type matchInfo struct {
 		profileIdx int
@@ -80,17 +80,17 @@ func (d *Device) DetectedGamer(ctx context.Context) (int, int, error) {
 	}
 
 	if len(matches) == 0 {
-		d.Logger.Warn("⚠️ Никнейм не найден по нечёткому совпадению", slog.String("parsed", nicknameParsed))
-		return -1, -1, errors.New("не найдено совпадений с никнеймом")
+		d.Logger.Warn("⚠️ Nickname not found by fuzzy match", slog.String("parsed", nicknameParsed))
+		return -1, -1, errors.New("no matches found with nickname")
 	}
 
-	// Находим наилучшее совпадение (с самым низким score)
+	// Find the best match (with the lowest score)
 	sort.Slice(matches, func(i, j int) bool {
 		return matches[i].score < matches[j].score
 	})
 	best := matches[0]
 
-	d.Logger.Info("✅ Найден игрок",
+	d.Logger.Info("✅ Player found",
 		slog.Int("profileIdx", best.profileIdx),
 		slog.Int("gamerIdx", best.gamerIdx),
 		slog.Int("score", best.score),
@@ -102,20 +102,20 @@ func (d *Device) DetectedGamer(ctx context.Context) (int, int, error) {
 func (d *Device) DetectAndSetCurrentGamer(ctx context.Context) (*domain.Gamer, int, int, error) {
 	pIdx, gIdx, err := d.DetectedGamer(ctx)
 	if err != nil || pIdx < 0 || gIdx < 0 {
-		d.Logger.Warn("⚠️ Не удалось определить активного игрока", slog.Any("err", err))
+		d.Logger.Warn("⚠️ Failed to detect active player", slog.Any("err", err))
 		return nil, -1, -1, err
 	}
 
-	// 💾 Сохраняем как текущего
+	// 💾 Save as current
 	d.activeProfileIdx = pIdx
 	d.activeGamerIdx = gIdx
 
 	active := &d.Profiles[pIdx].Gamer[gIdx]
-	d.Logger.Info("🔎 Активный игрок определён", slog.String("nickname", active.Nickname))
+	d.Logger.Info("🔎 Active player detected", slog.String("nickname", active.Nickname))
 
 	d.FSM.SetCallback(active)
 
-	// Сбрасываем старый стейт
+	// Reset old state
 	active.ScreenState.Reset()
 
 	return active, pIdx, gIdx, nil

@@ -45,24 +45,24 @@ func TestDetectedGamer_WithRealConfig_AndDeviceNew(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	// 🧾 Загружаем конфиг
+	// 🧾 Load config
 	cfg, err := config.LoadDeviceConfig("../../db/devices.yaml", "../../db/state.yaml")
 	if err != nil {
-		t.Fatalf("❌ Не удалось загрузить devices.yaml: %v", err)
+		t.Fatalf("❌ Failed to load devices.yaml: %v", err)
 	}
 
 	if len(cfg.Devices) == 0 || len(cfg.Devices[0].Profiles) == 0 {
-		t.Fatal("❌ В конфиге нет устройств или профилей")
+		t.Fatal("❌ No devices or profiles in config")
 	}
 
-	// ⚙️ Подменяем ADB-контроллер на мок
+	// ⚙️ Replace ADB controller with mock
 	profiles := cfg.Devices[0].Profiles
 	log := slog.Default()
 
-	// Создаём Device через `New`, потом подменяем ADB и FSM
+	// Create Device via `New`, then replace ADB and FSM
 	dev, err := device.New("test-device", profiles, log, "../../references/area.json")
 	if err != nil {
-		t.Fatalf("❌ device.New() вернул ошибку: %v", err)
+		t.Fatalf("❌ device.New() returned error: %v", err)
 	}
 
 	// Load area.json
@@ -73,17 +73,17 @@ func TestDetectedGamer_WithRealConfig_AndDeviceNew(t *testing.T) {
 
 	dev.FSM = fsm.NewGame(log, &MockADB{imagePath: "../../references/screenshots/chief_profile.png"}, lookup)
 
-	// Подменяем только Screenshot-логику, остальное можно оставить
+	// Replace only Screenshot logic, the rest can remain
 	dev.ADB = &MockADB{imagePath: "../../references/screenshots/chief_profile.png"}
 
-	// 🚀 Выполняем обнаружение
+	// 🚀 Perform detection
 	profileIdx, gamerIdx, err := dev.DetectedGamer(ctx, "../../references/screenshots/chief_profile.png")
 	assert.NoError(t, err)
-	assert.GreaterOrEqual(t, profileIdx, 0, "должен найти profile")
-	assert.GreaterOrEqual(t, gamerIdx, 0, "должен найти gamer")
+	assert.GreaterOrEqual(t, profileIdx, 0, "should find profile")
+	assert.GreaterOrEqual(t, gamerIdx, 0, "should find gamer")
 
 	nickname := dev.Profiles[profileIdx].Gamer[gamerIdx].Nickname
-	t.Logf("✅ Найден игрок: profileIdx=%d, gamerIdx=%d, nickname=%s", profileIdx, gamerIdx, nickname)
+	t.Logf("✅ Player found: profileIdx=%d, gamerIdx=%d, nickname=%s", profileIdx, gamerIdx, nickname)
 
 	assert.Equal(t, "batazor", nickname)
 }

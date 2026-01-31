@@ -5,15 +5,15 @@ import (
 )
 
 type ScreenState struct {
-	IsMainMenu bool   `yaml:"isMainMenu"` // Флаг, указывающий, есть ли события в главном меню.
-	IsWelcome  bool   `yaml:"isWelcome"`  // Флаг, указывающий, есть ли события приглашения новых выживших.
-	IsMainCity string `yaml:"isMainCity"` // Флаг, указывающий, какой экран активен - город или карта мира.
+	IsMainMenu bool   `yaml:"isMainMenu"` // Flag indicating whether there are events in the main menu.
+	IsWelcome  bool   `yaml:"isWelcome"`  // Flag indicating whether there are welcome events for new survivors.
+	IsMainCity string `yaml:"isMainCity"` // Flag indicating which screen is active - city or world map.
 
-	CurrentState string `yaml:"currentState"` // Заголовок экрана.
-	TitleFact    string `yaml:"titleFact"`    // Заголовок экрана, полученный из анализа скриншота.
+	CurrentState string `yaml:"currentState"` // Screen title.
+	TitleFact    string `yaml:"titleFact"`    // Screen title obtained from screenshot analysis.
 }
 
-// Reset сбрасывает состояние экрана.
+// Reset resets the screen state.
 func (s *ScreenState) Reset() {
 	s.IsMainMenu = false
 	s.IsWelcome = false

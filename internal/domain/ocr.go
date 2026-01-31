@@ -19,13 +19,13 @@ type OCRResult struct {
 	BgColor  string `json:"bg_color"`
 }
 
-// FilterByRect возвращает только те OCRResult, чьи боксы полностью лежат внутри заданного прямоугольника.
+// FilterByRect returns only those OCRResults whose boxes lie completely within the specified rectangle.
 func (rs OCRResults) FilterByRect(rect image.Rectangle) OCRResults {
 	var out OCRResults
 	for _, r := range rs {
-		// строим прямоугольник результата
+		// build the result rectangle
 		rRect := image.Rect(r.X, r.Y, r.X+r.Width, r.Y+r.Height)
-		// проверяем полное вхождение
+		// check complete containment
 		if rect.Min.X <= rRect.Min.X &&
 			rRect.Max.X <= rect.Max.X &&
 			rect.Min.Y <= rRect.Min.Y &&
@@ -36,14 +36,14 @@ func (rs OCRResults) FilterByRect(rect image.Rectangle) OCRResults {
 	return out
 }
 
-// FilterByBBox возвращает только те OCRResult, чьи прямоугольники лежат в BBox с допуском ±5%,
-// но не менее 10px и не более 50px по каждому измерению.
+// FilterByBBox returns only those OCRResults whose rectangles lie within BBox with a tolerance of ±5%,
+// but not less than 10px and not more than 50px per dimension.
 func (rs OCRResults) FilterByBBox(b *BBox) OCRResults {
 	rect := b.ToRectangle()
 	dx := rect.Dx()
 	dy := rect.Dy()
 
-	// Вычисляем погрешность ±5% и ограничиваем [10, 50]
+	// Calculate ±5% margin and limit to [10, 50]
 	marginX := int(float64(dx) * 0.05)
 	if marginX < 10 {
 		marginX = 10
@@ -57,7 +57,7 @@ func (rs OCRResults) FilterByBBox(b *BBox) OCRResults {
 		marginY = 50
 	}
 
-	// Расширяем исходный прямоугольник с учётом погрешности
+	// Expand the original rectangle accounting for the margin
 	expRect := image.Rect(
 		rect.Min.X-marginX,
 		rect.Min.Y-marginY,

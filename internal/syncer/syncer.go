@@ -10,7 +10,7 @@ import (
 	"github.com/batazor/whiteout-survival-autopilot/internal/repository"
 )
 
-// RefreshAllPlayersFromCentury загружает данные всех игроков через Century API и сохраняет их в state.yaml
+// RefreshAllPlayersFromCentury loads data for all players via Century API and saves them to state.yaml
 func RefreshAllPlayersFromCentury(
 	ctx context.Context,
 	gamers []*domain.Gamer,
@@ -30,11 +30,11 @@ func RefreshAllPlayersFromCentury(
 
 			info, err := century.FetchPlayerInfo(gamer.ID)
 			if err != nil {
-				logger.Warn("⚠️ Не удалось получить данные игрока из Century", slog.Int("id", gamer.ID), slog.Any("err", err))
+				logger.Warn("⚠️ Failed to get player data from Century", slog.Int("id", gamer.ID), slog.Any("err", err))
 				return
 			}
 
-			// Обновляем данные
+			// Update data
 			gamer.Nickname = info.Data.Nickname
 			gamer.State = info.Data.KID
 			gamer.Avatar = info.Data.AvatarImage
@@ -44,17 +44,17 @@ func RefreshAllPlayersFromCentury(
 			updatedGamers = append(updatedGamers, *gamer)
 			mu.Unlock()
 
-			logger.Info("📥 Игрок обновлён из Century", slog.String("nickname", gamer.Nickname), slog.Int("id", gamer.ID))
+			logger.Info("📥 Player updated from Century", slog.String("nickname", gamer.Nickname), slog.Int("id", gamer.ID))
 		}()
 	}
 
 	wg.Wait()
 
-	// 💾 Сохраняем финальный state.yaml
+	// 💾 Save final state.yaml
 	finalState := &domain.State{Gamers: updatedGamers}
 	if err := repo.SaveState(ctx, finalState); err != nil {
-		logger.Error("❌ Не удалось сохранить state.yaml после обновления", slog.Any("error", err))
+		logger.Error("❌ Failed to save state.yaml after update", slog.Any("error", err))
 	} else {
-		logger.Info("💾 Финальный state.yaml успешно сохранён")
+		logger.Info("💾 Final state.yaml successfully saved")
 	}
 }

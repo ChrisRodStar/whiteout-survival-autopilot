@@ -43,7 +43,7 @@ func pollOnceTwitter(ctx context.Context, api *client, cfg Config) error {
 		return err
 	}
 
-	// (?i) — регистронезависимый,  (?: … ) — необязательная группа
+	// (?i) — case-insensitive,  (?: … ) — optional group
 	reCode := regexp.MustCompile(`(?i)(?:gift\s*)?code:\s*([A-Za-z0-9]{6,20})`)
 	reUntil := regexp.MustCompile(`(?i)valid\s+until:\s*([A-Za-z]+\s+\d{1,2},\s+\d{2}:\d{2})`)
 

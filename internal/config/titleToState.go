@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	// TitleToState используется для определения состояния (state) в зависимости от названия экрана (title).
+	// TitleToState is used to determine the state based on the screen title.
 	TitleToState = map[string][]string{
 		"Alliance":      {state.StateAllianceManage},
 		"Chief Profile": {state.StateChiefProfile},

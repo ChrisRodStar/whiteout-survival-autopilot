@@ -12,24 +12,24 @@ import (
 )
 
 const (
-	// screenBoost – сколько «виртуальных» очков получает UseCase, чей Node
-	// совпадает с текущим экраном. Больше — агрессивнее обрабатываем задачи
-	// текущего экрана прежде, чем переходить на другие.
+	// screenBoost – how many "virtual" points a UseCase gets whose Node
+	// matches the current screen. Higher — more aggressively process tasks
+	// of the current screen before moving to others.
 	screenBoost = 5
 
-	// scanWindow – сколько верхних элементов ZSET мы смотрим, прежде чем выбрать
-	// лучший. 10–50 достаточно, чтобы почти всегда «видеть» все UC текущего
-	// экрана и при этом не перегружать Redis.
+	// scanWindow – how many top ZSET elements we look at before choosing
+	// the best. 10–50 is enough to almost always "see" all UCs of the current
+	// screen without overloading Redis.
 	scanWindow = 20
 )
 
-// Queue хранит задачи конкретного бота (или геймера) в
-// приоритетной очереди Redis (sorted‑set).
-//   - Чем выше uc.Priority (0–100), тем ниже score, тем левее элемент в ZSET.
-//   - PopBest дополнительно сдвигает score «своего» экрана на screenBoost.
+// Queue stores tasks for a specific bot (or gamer) in
+// a Redis priority queue (sorted‑set).
+//   - The higher uc.Priority (0–100), the lower the score, the further left the element in ZSET.
+//   - PopBest additionally shifts the score of "its" screen by screenBoost.
 //
-// Формат value = json.Marshal(domain.UseCase).
-// Score вычисляется при Push: score = 100 - uc.Priority.
+// Value format = json.Marshal(domain.UseCase).
+// Score is calculated on Push: score = 100 - uc.Priority.
 // -----------------------------------------------------------------------------
 type Queue struct {
 	rdb   *redis.Client
@@ -44,22 +44,22 @@ func NewGamerQueue(rdb *redis.Client, gamerID int) *Queue {
 	return &Queue{rdb: rdb, botID: fmt.Sprintf("gamer:%d", gamerID)}
 }
 
-// Push добавляет UseCase в приоритетную очередь Redis.
-// Чем выше uc.Priority (0–100), тем выше приоритет задачи (меньше score).
+// Push adds a UseCase to the Redis priority queue.
+// The higher uc.Priority (0–100), the higher the task priority (lower score).
 func (q *Queue) Push(ctx context.Context, uc *domain.UseCase) error {
 	data, err := json.Marshal(uc)
 	if err != nil {
 		return err
 	}
 
-	score := float64(100 - uc.Priority) // Чем выше приоритет, тем ниже score
+	score := float64(100 - uc.Priority) // Higher priority, lower score
 	return q.rdb.ZAdd(ctx, q.key(), redis.Z{
 		Score:  score,
 		Member: data,
 	}).Err()
 }
 
-// Pop извлекает самый приоритетный UseCase из очереди Redis.
+// Pop extracts the highest priority UseCase from the Redis queue.
 func (q *Queue) Pop(ctx context.Context) (*domain.UseCase, error) {
 	items, err := q.rdb.ZPopMin(ctx, q.key(), 1).Result()
 	if err != nil || len(items) == 0 {
@@ -75,25 +75,25 @@ func (q *Queue) Pop(ctx context.Context) (*domain.UseCase, error) {
 }
 
 // -----------------------------------------------------------------------------
-// PopBest – извлекает UC c учётом "бустa" текущего экрана.
+// PopBest – extracts UC considering current screen "boost".
 // -----------------------------------------------------------------------------
 
-// currentNode – FSM‑узел, на котором сейчас находится UI (например, "alliance").
+// currentNode – FSM node where the UI is currently located (e.g., "alliance").
 //
-// Алгоритм:
-//  1. Берём первые scanWindow элементов из ZSET (они уже грубо отсортированы
-//     по приоритету).
-//  2. Для каждого декодируем UseCase, считаем adjustedScore = score - screenBoost,
-//     если uc.Node == currentNode.
-//  3. Выбираем минимальный adjustedScore.
-//  4. Удаляем этот элемент из ZSET (ZREM) и возвращаем.
+// Algorithm:
+//  1. Take the first scanWindow elements from ZSET (they are already roughly sorted
+//     by priority).
+//  2. For each, decode UseCase, calculate adjustedScore = score - screenBoost,
+//     if uc.Node == currentNode.
+//  3. Choose the minimum adjustedScore.
+//  4. Remove this element from ZSET (ZREM) and return.
 func (q *Queue) PopBest(ctx context.Context, currentNode string) (*domain.UseCase, error) {
 	items, err := q.rdb.ZRangeWithScores(ctx, q.key(), 0, scanWindow-1).Result()
 	if err != nil {
 		return nil, err
 	}
 	if len(items) == 0 {
-		return nil, nil // очередь пуста – не считаем это ошибкой
+		return nil, nil // queue is empty – not considered an error
 	}
 
 	bestIdx, bestScore := -1, 1e9
@@ -102,11 +102,11 @@ func (q *Queue) PopBest(ctx context.Context, currentNode string) (*domain.UseCas
 	for i, it := range items {
 		raw, ok := it.Member.(string)
 		if !ok {
-			continue // пропускаем повреждённый элемент
+			continue // skip corrupted element
 		}
 		var uc domain.UseCase
 		if err := json.Unmarshal([]byte(raw), &uc); err != nil {
-			continue // тоже повреждённый – игнорируем
+			continue // also corrupted – ignore
 		}
 
 		score := it.Score
@@ -120,12 +120,12 @@ func (q *Queue) PopBest(ctx context.Context, currentNode string) (*domain.UseCas
 	}
 
 	if bestIdx == -1 {
-		// Все элементы были битые – очищаем окно на всякий случай.
+		// All elements were corrupted – clear the window just in case.
 		_ = q.rdb.ZRem(ctx, q.key(), extractMembers(items)...)
 		return nil, fmt.Errorf("no decodable use cases in queue window")
 	}
 
-	// Удаляем выбранный элемент по оригинальному Member.
+	// Remove the selected element by original Member.
 	if err := q.rdb.ZRem(ctx, q.key(), items[bestIdx].Member).Err(); err != nil {
 		return nil, err
 	}
@@ -133,8 +133,8 @@ func (q *Queue) PopBest(ctx context.Context, currentNode string) (*domain.UseCas
 	return &bestUC, nil
 }
 
-// extractMembers собирает значения Member из массива redis.Z для служебного
-// удаления битых записей.
+// extractMembers collects Member values from redis.Z array for utility
+// removal of corrupted records.
 func extractMembers(zs []redis.Z) []interface{} {
 	out := make([]interface{}, 0, len(zs))
 	for _, z := range zs {
@@ -143,7 +143,7 @@ func extractMembers(zs []redis.Z) []interface{} {
 	return out
 }
 
-// Peek возвращает самый приоритетный UseCase без удаления (полезно для анализа)
+// Peek returns the highest priority UseCase without removal (useful for analysis)
 func (q *Queue) Peek(ctx context.Context) (*domain.UseCase, error) {
 	items, err := q.rdb.ZRangeWithScores(ctx, q.key(), 0, 0).Result()
 	if err != nil || len(items) == 0 {
@@ -158,7 +158,7 @@ func (q *Queue) Peek(ctx context.Context) (*domain.UseCase, error) {
 	return &uc, nil
 }
 
-// Len возвращает количество задач в очереди
+// Len returns the number of tasks in the queue
 func (q *Queue) Len(ctx context.Context) (int64, error) {
 	return q.rdb.ZCard(ctx, q.key()).Result()
 }

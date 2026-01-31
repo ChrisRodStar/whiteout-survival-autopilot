@@ -1,79 +1,79 @@
 package domain
 
-// Alliance описывает данные об альянсе, к которому принадлежит персонаж.
+// Alliance describes data about the alliance to which the character belongs.
 type Alliance struct {
-	Name    string        `yaml:"name"`    // Название альянса.
+	Name    string        `yaml:"name"`    // Alliance name.
 	MyLevel int           `yaml:"myLevel"` // R5-R1
-	Power   int           `yaml:"power"`   // Мощь альянса.
-	Members MembersInfo   `yaml:"members"` // Информация о членах альянса.
-	State   AllianceState `yaml:"state"`   // Дополнительное состояние альянса.
+	Power   int           `yaml:"power"`   // Alliance power.
+	Members MembersInfo   `yaml:"members"` // Information about alliance members.
+	State   AllianceState `yaml:"state"`   // Additional alliance state.
 
 	// Left menu
-	War       AllianceWar       `yaml:"war"`       // Война альянса (например, текущая война).
-	Territory AllianceTerritory `yaml:"territory"` // Территория альянса (например, захваченные территории).
-	Shop      AllianceShop      `yaml:"shop"`      // Магазин альянса (например, покупки).
+	War       AllianceWar       `yaml:"war"`       // Alliance war (e.g., current war).
+	Territory AllianceTerritory `yaml:"territory"` // Alliance territory (e.g., captured territories).
+	Shop      AllianceShop      `yaml:"shop"`      // Alliance shop (e.g., purchases).
 
 	// Right menu
-	Chests AllianceChests `yaml:"chests"` // Сундуки альянса (например, награды).
-	Battle AllianceBattle `yaml:"battle"` // Битва альянса (например, битвы с другими альянсами).
-	Tech   AllianceTech   `yaml:"tech"`   // Технологии альянса (например, вклад).
-	Help   AllianceHelp   `yaml:"help"`   // Помощь альянса (например, помощь другим игрокам).
+	Chests AllianceChests `yaml:"chests"` // Alliance chests (e.g., rewards).
+	Battle AllianceBattle `yaml:"battle"` // Alliance battle (e.g., battles with other alliances).
+	Tech   AllianceTech   `yaml:"tech"`   // Alliance technologies (e.g., contribution).
+	Help   AllianceHelp   `yaml:"help"`   // Alliance help (e.g., helping other players).
 }
 
-// MembersInfo содержит сведения о количестве участников альянса.
+// MembersInfo contains information about the number of alliance members.
 type MembersInfo struct {
-	Count int `yaml:"count"` // Текущее количество участников.
-	Max   int `yaml:"max"`   // Максимальное количество участников.
+	Count int `yaml:"count"` // Current number of members.
+	Max   int `yaml:"max"`   // Maximum number of members.
 }
 
-// AllianceState описывает состояние альянса.
+// AllianceState describes the alliance state.
 type AllianceState struct {
-	IsNeedSupport              bool `yaml:"isNeedSupport"`              // Признак участия в альянсе.
-	IsWar                      int  `yaml:"isWar"`                      // Количество текущих войн.
-	IsChests                   int  `yaml:"isChests"`                   // Количество доступных сундуков.
-	IsAllianceContributeButton bool `yaml:"isAllianceContributeButton"` // Кнопка вклада в технологию
-	IsAllianceTechButton       bool `yaml:"isAllianceTechButton"`       // Кнопка технологий альянса
-	PolarTerrorCount           int  `yaml:"polarTerrorCount"`           // Количество успешных присоединений на полярного медведя
+	IsNeedSupport              bool `yaml:"isNeedSupport"`              // Flag for alliance participation.
+	IsWar                      int  `yaml:"isWar"`                      // Number of current wars.
+	IsChests                   int  `yaml:"isChests"`                   // Number of available chests.
+	IsAllianceContributeButton bool `yaml:"isAllianceContributeButton"` // Technology contribution button
+	IsAllianceTechButton       bool `yaml:"isAllianceTechButton"`       // Alliance technologies button
+	PolarTerrorCount           int  `yaml:"polarTerrorCount"`           // Number of successful polar bear joins
 
 	// chests
-	IsClaimButton        bool `yaml:"isClaimButton"`        // Кнопка на получение награды альянса
-	IsCanClaimAllChests  bool `yaml:"isCanClaimAllChests"`  // Кнопка на получение всех сундуков
-	LootCountLimit       int  `yaml:"lootCountLimit"`       // Лимит сундуков
-	IsGiftClaimAllButton bool `yaml:"isGiftClaimAllButton"` // Кнопка на получение всех подарков
-	IsMainChest          bool `yaml:"isMainChest"`          // Кнопка на получение главного сундука
+	IsClaimButton        bool `yaml:"isClaimButton"`        // Button to claim alliance reward
+	IsCanClaimAllChests  bool `yaml:"isCanClaimAllChests"`  // Button to claim all chests
+	LootCountLimit       int  `yaml:"lootCountLimit"`       // Chest limit
+	IsGiftClaimAllButton bool `yaml:"isGiftClaimAllButton"` // Button to claim all gifts
+	IsMainChest          bool `yaml:"isMainChest"`          // Button to claim main chest
 }
 
-// AllianceWar описывает войну альянса. --------------------------------------
+// AllianceWar describes the alliance war. --------------------------------------
 type AllianceWar struct {
-	IsNotify bool `yaml:"isNotify"` // Признак уведомления о войне.
+	IsNotify bool `yaml:"isNotify"` // Flag for war notification.
 }
 
-// AllianceTerritory описывает территорию альянса.
+// AllianceTerritory describes the alliance territory.
 type AllianceTerritory struct {
-	IsNotify bool `yaml:"isNotify"` // Признак уведомления о территории.
+	IsNotify bool `yaml:"isNotify"` // Flag for territory notification.
 }
 
-// AllianceShop описывает магазин альянса.
+// AllianceShop describes the alliance shop.
 type AllianceShop struct{}
 
-// AllianceChests описывает сундуки альянса. -----------------------------
+// AllianceChests describes the alliance chests. -----------------------------
 type AllianceChests struct {
-	IsNotify bool `yaml:"isNotify"` // Признак уведомления о сундуках.
+	IsNotify bool `yaml:"isNotify"` // Flag for chest notification.
 }
 
-// AllianceBattle описывает битвы альянса.
+// AllianceBattle describes the alliance battles.
 type AllianceBattle struct {
-	IsNotify bool `yaml:"isNotify"` // Признак уведомления о битвах.
+	IsNotify bool `yaml:"isNotify"` // Flag for battle notification.
 }
 
-// AllianceTech описывает технологические аспекты альянса.
+// AllianceTech describes the technological aspects of the alliance.
 type AllianceTech struct {
-	IsNotify bool `yaml:"isNotify"` // Признак уведомления о технологии.
+	IsNotify bool `yaml:"isNotify"` // Flag for technology notification.
 
-	Favorite bool `yaml:"favorite"` // Признак технологии для вклада.
+	Favorite bool `yaml:"favorite"` // Flag for technology contribution.
 }
 
-// AllianceHelp описывает помощь альянса.
+// AllianceHelp describes the alliance help.
 type AllianceHelp struct {
-	IsNotify bool `yaml:"isNotify"` // Признак уведомления о помощи.
+	IsNotify bool `yaml:"isNotify"` // Flag for help notification.
 }

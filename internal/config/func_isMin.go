@@ -6,7 +6,7 @@ import (
 	"github.com/google/cel-go/common/types/ref"
 )
 
-// isMinBinding — возвращает true, если первый аргумент меньше всех остальных.
+// isMinBinding — returns true if the first argument is less than all others.
 func isMinBinding(args ...ref.Val) ref.Val {
 	if len(args) < 2 {
 		return types.Bool(false)
@@ -24,7 +24,7 @@ func isMinBinding(args ...ref.Val) ref.Val {
 	return types.Bool(true)
 }
 
-// IsMinLib — EnvOption, регистрирующий функцию isMin для CEL.
+// IsMinLib — EnvOption that registers the isMin function for CEL.
 var IsMinLib = cel.Function(
 	"isMin",
 	cel.Overload(
